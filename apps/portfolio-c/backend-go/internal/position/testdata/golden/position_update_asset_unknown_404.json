@@ -1,0 +1,15 @@
+{
+  "status": 404,
+  "body": {
+    "errors": [
+      {
+        "code": "NOT_FOUND",
+        "message": "Asset with id 999999 not found"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

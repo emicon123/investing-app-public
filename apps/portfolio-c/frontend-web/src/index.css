@@ -1,0 +1,10 @@
+@import "@common/ui-primitives/base.css";
+@import "./theme-portfolio-c.css";
+
+/* Tailwind v4 excludes node_modules from automatic content detection.
+   @common/ui-primitives and @common/app-core resolve through a workspace
+   symlink at node_modules/@common/* -> packages/common/{ui,ts}, so their
+   utility classes (including arbitrary-value classes like max-h-[90vh])
+   are invisible to the scanner unless explicitly registered here. */
+@source "../../../../packages/common/ui/src";
+@source "../../../../packages/common/ts/src";

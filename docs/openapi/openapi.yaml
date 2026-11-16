@@ -1,0 +1,530 @@
+# ---------------------------------------------------------------------------
+# ENTRYPOINT — this is the SOURCE OF TRUTH for the API contract.
+#
+# Edit the files under docs/openapi/ (this file, components/, paths/), never
+# hand-edit the generated docs/openapi.yaml bundle directly (it is overwritten
+# on every regeneration and any manual edits to it will be silently lost).
+#
+# After editing, regenerate the bundle with:
+#   npm run openapi:bundle     (redocly bundle docs/openapi/openapi.yaml -o docs/openapi.yaml)
+#   npm run openapi:lint       (redocly lint docs/openapi/openapi.yaml)
+# ---------------------------------------------------------------------------
+openapi: "3.1.0"
+
+info:
+  title: Investing App API
+  description: |
+    Personal investment-tracking REST API. All endpoints (except the token
+    exchange and health endpoints listed below) require a valid **backend JWT**
+    passed as a Bearer token in the Authorization header.
+
+    **Auth flow (ADR-032):**
+    1. Client completes Google Sign-In → receives a short-lived Google ID token
+       (1-hour expiry, managed entirely by Google Identity Platform).
+    2. Client calls `POST /api/auth/token` with the Google ID token.
+    3. Backend validates the Google token (JWK URI + `aud` claim + email allowlist)
+       and, if valid, issues a signed backend JWT (HMAC-SHA256, 30-day expiry).
+    4. Client stores the backend JWT (web: memory/React context).
+    5. All subsequent API requests carry `Authorization: Bearer <backend-jwt>`.
+    6. After 30 days, client repeats from step 1.
+
+    **Unauthenticated endpoints:** `POST /auth/token`, `/actuator/health`,
+    `/swagger-ui/**`, `/api-docs/**`
+  version: "1.0.0"
+  contact:
+    name: Wojtek
+
+servers:
+  - url: http://investing-rpi/api
+    description: Production (Tailscale MagicDNS)
+  - url: http://localhost:8080/api
+    description: Local development
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    $ref: "./components/security-schemes.yaml"
+  schemas:
+    TokenExchangeRequest:
+      $ref: "./components/schemas/auth.yaml#/TokenExchangeRequest"
+    TokenExchangeResponse:
+      $ref: "./components/schemas/auth.yaml#/TokenExchangeResponse"
+    Meta:
+      $ref: "./components/schemas/common.yaml#/Meta"
+    PageInfo:
+      $ref: "./components/schemas/common.yaml#/PageInfo"
+    ErrorDetail:
+      $ref: "./components/schemas/common.yaml#/ErrorDetail"
+    ErrorResponse:
+      $ref: "./components/schemas/common.yaml#/ErrorResponse"
+    Portfolio:
+      $ref: "./components/schemas/enums.yaml#/Portfolio"
+    Exchange:
+      $ref: "./components/schemas/enums.yaml#/Exchange"
+    AssetClass:
+      $ref: "./components/schemas/enums.yaml#/AssetClass"
+    Currency:
+      $ref: "./components/schemas/enums.yaml#/Currency"
+    AccountType:
+      $ref: "./components/schemas/enums.yaml#/AccountType"
+    TradeSide:
+      $ref: "./components/schemas/enums.yaml#/TradeSide"
+    TradeSource:
+      $ref: "./components/schemas/enums.yaml#/TradeSource"
+    SessionStatus:
+      $ref: "./components/schemas/enums.yaml#/SessionStatus"
+    PortfoliosIncluded:
+      $ref: "./components/schemas/enums.yaml#/PortfoliosIncluded"
+    BinanceTransferSource:
+      $ref: "./components/schemas/enums.yaml#/BinanceTransferSource"
+    TradeType:
+      $ref: "./components/schemas/enums.yaml#/TradeType"
+    PositionComputed:
+      $ref: "./components/schemas/positions.yaml#/PositionComputed"
+    Asset:
+      $ref: "./components/schemas/positions.yaml#/Asset"
+    Subasset:
+      $ref: "./components/schemas/positions.yaml#/Subasset"
+    CreatePositionRequest:
+      $ref: "./components/schemas/positions.yaml#/CreatePositionRequest"
+    NewAssetRequest:
+      $ref: "./components/schemas/positions.yaml#/NewAssetRequest"
+    UpdatePositionRequest:
+      $ref: "./components/schemas/positions.yaml#/UpdatePositionRequest"
+    UpdateAssetRequest:
+      $ref: "./components/schemas/positions.yaml#/UpdateAssetRequest"
+    SetAssetPrimaryRequest:
+      $ref: "./components/schemas/positions.yaml#/SetAssetPrimaryRequest"
+    AssetsPagedResponse:
+      $ref: "./components/schemas/positions.yaml#/AssetsPagedResponse"
+    AssetSingleResponse:
+      $ref: "./components/schemas/positions.yaml#/AssetSingleResponse"
+    Deposit:
+      $ref: "./components/schemas/deposits.yaml#/Deposit"
+    CreateDepositRequest:
+      $ref: "./components/schemas/deposits.yaml#/CreateDepositRequest"
+    DepositsPagedResponse:
+      $ref: "./components/schemas/deposits.yaml#/DepositsPagedResponse"
+    XirrResponse:
+      $ref: "./components/schemas/deposits.yaml#/XirrResponse"
+    AccountCapUsage:
+      $ref: "./components/schemas/deposits.yaml#/AccountCapUsage"
+    AccountCapUsageResponse:
+      $ref: "./components/schemas/deposits.yaml#/AccountCapUsageResponse"
+    AccountCapAdjustmentRequest:
+      $ref: "./components/schemas/deposits.yaml#/AccountCapAdjustmentRequest"
+    AccountCapUsageSingleResponse:
+      $ref: "./components/schemas/deposits.yaml#/AccountCapUsageSingleResponse"
+    BinanceTransfer:
+      $ref: "./components/schemas/binance-transfers.yaml#/BinanceTransfer"
+    CreateBinanceTransferRequest:
+      $ref: "./components/schemas/binance-transfers.yaml#/CreateBinanceTransferRequest"
+    BinanceTransferYearlySum:
+      $ref: "./components/schemas/binance-transfers.yaml#/BinanceTransferYearlySum"
+    BinanceTransfersListResponse:
+      $ref: "./components/schemas/binance-transfers.yaml#/BinanceTransfersListResponse"
+    BinanceTransferSingleResponse:
+      $ref: "./components/schemas/binance-transfers.yaml#/BinanceTransferSingleResponse"
+    HistoriaEntry:
+      $ref: "./components/schemas/historia.yaml#/HistoriaEntry"
+    HistoriaPagedResponse:
+      $ref: "./components/schemas/historia.yaml#/HistoriaPagedResponse"
+    CashPosition:
+      $ref: "./components/schemas/cash-positions.yaml#/CashPosition"
+    CreateCashPositionsRequest:
+      $ref: "./components/schemas/cash-positions.yaml#/CreateCashPositionsRequest"
+    CashPositionsListResponse:
+      $ref: "./components/schemas/cash-positions.yaml#/CashPositionsListResponse"
+    NewsSentiment:
+      $ref: "./components/schemas/news.yaml#/NewsSentiment"
+    NewsSource:
+      $ref: "./components/schemas/news.yaml#/NewsSource"
+    NewsItem:
+      $ref: "./components/schemas/news.yaml#/NewsItem"
+    NewsListResponse:
+      $ref: "./components/schemas/news.yaml#/NewsListResponse"
+    NewsDatesListResponse:
+      $ref: "./components/schemas/news.yaml#/NewsDatesListResponse"
+    NewsAsset:
+      $ref: "./components/schemas/news.yaml#/NewsAsset"
+    NewsAssetsListResponse:
+      $ref: "./components/schemas/news.yaml#/NewsAssetsListResponse"
+    IngestNewsItem:
+      $ref: "./components/schemas/news.yaml#/IngestNewsItem"
+    IngestNewsRequest:
+      $ref: "./components/schemas/news.yaml#/IngestNewsRequest"
+    IngestNewsResponse:
+      $ref: "./components/schemas/news.yaml#/IngestNewsResponse"
+    NewsReportOutcome:
+      $ref: "./components/schemas/news.yaml#/NewsReportOutcome"
+    NotifyNewsReportRequest:
+      $ref: "./components/schemas/news.yaml#/NotifyNewsReportRequest"
+    PushConfig:
+      $ref: "./components/schemas/push.yaml#/PushConfig"
+    PushConfigResponse:
+      $ref: "./components/schemas/push.yaml#/PushConfigResponse"
+    PushSubscriptionKeys:
+      $ref: "./components/schemas/push.yaml#/PushSubscriptionKeys"
+    UpsertPushSubscriptionRequest:
+      $ref: "./components/schemas/push.yaml#/UpsertPushSubscriptionRequest"
+    DeletePushSubscriptionRequest:
+      $ref: "./components/schemas/push.yaml#/DeletePushSubscriptionRequest"
+    PushSubscriptionInfo:
+      $ref: "./components/schemas/push.yaml#/PushSubscriptionInfo"
+    PushSubscriptionResponse:
+      $ref: "./components/schemas/push.yaml#/PushSubscriptionResponse"
+    PushDeliveryReport:
+      $ref: "./components/schemas/push.yaml#/PushDeliveryReport"
+    PushDeliveryReportResponse:
+      $ref: "./components/schemas/push.yaml#/PushDeliveryReportResponse"
+    BotCalendarEvent:
+      $ref: "./components/schemas/bot.yaml#/BotCalendarEvent"
+    BotCalendarEventPagedResponse:
+      $ref: "./components/schemas/bot.yaml#/BotCalendarEventPagedResponse"
+    BotCalendarSyncResponse:
+      $ref: "./components/schemas/bot.yaml#/BotCalendarSyncResponse"
+    BotControl:
+      $ref: "./components/schemas/bot.yaml#/BotControl"
+    BotControlResponse:
+      $ref: "./components/schemas/bot.yaml#/BotControlResponse"
+    UpdateBotControlRequest:
+      $ref: "./components/schemas/bot.yaml#/UpdateBotControlRequest"
+    BotPlanScenario:
+      $ref: "./components/schemas/bot.yaml#/BotPlanScenario"
+    BotDailyPlan:
+      $ref: "./components/schemas/bot.yaml#/BotDailyPlan"
+    BotDailyPlanSingleResponse:
+      $ref: "./components/schemas/bot.yaml#/BotDailyPlanSingleResponse"
+    BotDailyPlanPagedResponse:
+      $ref: "./components/schemas/bot.yaml#/BotDailyPlanPagedResponse"
+    IngestBotPlanRequest:
+      $ref: "./components/schemas/bot.yaml#/IngestBotPlanRequest"
+    BotSignal:
+      $ref: "./components/schemas/bot.yaml#/BotSignal"
+    BotSignalSingleResponse:
+      $ref: "./components/schemas/bot.yaml#/BotSignalSingleResponse"
+    BotSignalPagedResponse:
+      $ref: "./components/schemas/bot.yaml#/BotSignalPagedResponse"
+    CreateBotSignalRequest:
+      $ref: "./components/schemas/bot.yaml#/CreateBotSignalRequest"
+    BotTrade:
+      $ref: "./components/schemas/bot.yaml#/BotTrade"
+    BotTradeSingleResponse:
+      $ref: "./components/schemas/bot.yaml#/BotTradeSingleResponse"
+    BotTradePagedResponse:
+      $ref: "./components/schemas/bot.yaml#/BotTradePagedResponse"
+    BotTradeListResponse:
+      $ref: "./components/schemas/bot.yaml#/BotTradeListResponse"
+    CreateBotTradeRequest:
+      $ref: "./components/schemas/bot.yaml#/CreateBotTradeRequest"
+    CloseBotTradeRequest:
+      $ref: "./components/schemas/bot.yaml#/CloseBotTradeRequest"
+    BotTradeAction:
+      $ref: "./components/schemas/bot.yaml#/BotTradeAction"
+    BotTradeActionListResponse:
+      $ref: "./components/schemas/bot.yaml#/BotTradeActionListResponse"
+    BotTradeActionSingleResponse:
+      $ref: "./components/schemas/bot.yaml#/BotTradeActionSingleResponse"
+    CreateBotTradeActionRequest:
+      $ref: "./components/schemas/bot.yaml#/CreateBotTradeActionRequest"
+    BotTradeTick:
+      $ref: "./components/schemas/bot.yaml#/BotTradeTick"
+    BotTradeTickListResponse:
+      $ref: "./components/schemas/bot.yaml#/BotTradeTickListResponse"
+    CreateBotTradeTicksRequest:
+      $ref: "./components/schemas/bot.yaml#/CreateBotTradeTicksRequest"
+    ScalpFinishRequest:
+      $ref: "./components/schemas/bot.yaml#/ScalpFinishRequest"
+    BotManageAckResponse:
+      $ref: "./components/schemas/bot.yaml#/BotManageAckResponse"
+    BotStatsResponse:
+      $ref: "./components/schemas/bot.yaml#/BotStatsResponse"
+    BotEquityListResponse:
+      $ref: "./components/schemas/bot.yaml#/BotEquityListResponse"
+    PriceEntry:
+      $ref: "./components/schemas/market-data.yaml#/PriceEntry"
+    FxRateEntry:
+      $ref: "./components/schemas/market-data.yaml#/FxRateEntry"
+    PricesListResponse:
+      $ref: "./components/schemas/market-data.yaml#/PricesListResponse"
+    FxRatesListResponse:
+      $ref: "./components/schemas/market-data.yaml#/FxRatesListResponse"
+    PriceRefreshResult:
+      $ref: "./components/schemas/market-data.yaml#/PriceRefreshResult"
+    TickerFailure:
+      $ref: "./components/schemas/market-data.yaml#/TickerFailure"
+    RegressionDataPoint:
+      $ref: "./components/schemas/market-data.yaml#/RegressionDataPoint"
+    RegressionResponse:
+      $ref: "./components/schemas/market-data.yaml#/RegressionResponse"
+    TradeChartTickerEntry:
+      $ref: "./components/schemas/trade-chart.yaml#/TradeChartTickerEntry"
+    ExcludedTradeChartTicker:
+      $ref: "./components/schemas/trade-chart.yaml#/ExcludedTradeChartTicker"
+    TradeChartTickersResponse:
+      $ref: "./components/schemas/trade-chart.yaml#/TradeChartTickersResponse"
+    TradeChartPricePoint:
+      $ref: "./components/schemas/trade-chart.yaml#/TradeChartPricePoint"
+    TradeChartMarker:
+      $ref: "./components/schemas/trade-chart.yaml#/TradeChartMarker"
+    TradeChartResponse:
+      $ref: "./components/schemas/trade-chart.yaml#/TradeChartResponse"
+    CryptoTrade:
+      $ref: "./components/schemas/crypto-trades.yaml#/CryptoTrade"
+    CreateCryptoTradeRequest:
+      $ref: "./components/schemas/crypto-trades.yaml#/CreateCryptoTradeRequest"
+    CryptoTradesPagedResponse:
+      $ref: "./components/schemas/crypto-trades.yaml#/CryptoTradesPagedResponse"
+    CryptoTaxSummaryEntry:
+      $ref: "./components/schemas/crypto-trades.yaml#/CryptoTaxSummaryEntry"
+    CryptoTaxSummaryResponse:
+      $ref: "./components/schemas/crypto-trades.yaml#/CryptoTaxSummaryResponse"
+    TaxReturn:
+      $ref: "./components/schemas/tax-returns.yaml#/TaxReturn"
+    CreateTaxReturnRequest:
+      $ref: "./components/schemas/tax-returns.yaml#/CreateTaxReturnRequest"
+    TaxReturnsPagedResponse:
+      $ref: "./components/schemas/tax-returns.yaml#/TaxReturnsPagedResponse"
+    InflationEntry:
+      $ref: "./components/schemas/inflation.yaml#/InflationEntry"
+    CreateInflationRequest:
+      $ref: "./components/schemas/inflation.yaml#/CreateInflationRequest"
+    InflationPagedResponse:
+      $ref: "./components/schemas/inflation.yaml#/InflationPagedResponse"
+    Setting:
+      $ref: "./components/schemas/settings.yaml#/Setting"
+    UpdateSettingRequest:
+      $ref: "./components/schemas/settings.yaml#/UpdateSettingRequest"
+    SettingsListResponse:
+      $ref: "./components/schemas/settings.yaml#/SettingsListResponse"
+    SettingSingleResponse:
+      $ref: "./components/schemas/settings.yaml#/SettingSingleResponse"
+    MacroComponentStatus:
+      $ref: "./components/schemas/macro.yaml#/MacroComponentStatus"
+    MacroState:
+      $ref: "./components/schemas/macro.yaml#/MacroState"
+    MacroStateResponse:
+      $ref: "./components/schemas/macro.yaml#/MacroStateResponse"
+    ManualM2ObservationRequest:
+      $ref: "./components/schemas/macro.yaml#/ManualM2ObservationRequest"
+    PurchaseSessionItemPlanned:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PurchaseSessionItemPlanned"
+    PurchaseSessionCurrencyBreakdown:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PurchaseSessionCurrencyBreakdown"
+    PurchaseSessionAccountLimits:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PurchaseSessionAccountLimits"
+    PurchaseSession:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PurchaseSession"
+    CreatePurchaseSessionRequest:
+      $ref: "./components/schemas/purchase-sessions.yaml#/CreatePurchaseSessionRequest"
+    PatchSessionItemsRequest:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PatchSessionItemsRequest"
+    PurchaseSessionSingleResponse:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PurchaseSessionSingleResponse"
+    PurchaseSessionsPagedResponse:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PurchaseSessionsPagedResponse"
+    PurchaseSessionCompleteResponse:
+      $ref: "./components/schemas/purchase-sessions.yaml#/PurchaseSessionCompleteResponse"
+    RebalancingTransferLeg:
+      $ref: "./components/schemas/rebalancing-transfer.yaml#/RebalancingTransferLeg"
+    RebalancingTransferRequest:
+      $ref: "./components/schemas/rebalancing-transfer.yaml#/RebalancingTransferRequest"
+    RebalancingTransferResponse:
+      $ref: "./components/schemas/rebalancing-transfer.yaml#/RebalancingTransferResponse"
+  responses:
+    $ref: "./components/responses.yaml"
+  parameters:
+    $ref: "./components/parameters.yaml"
+
+paths:
+  /auth/token:
+    $ref: "./paths/auth.yaml#/token"
+  /positions:
+    $ref: "./paths/positions.yaml#/collection"
+  /positions/{id}:
+    $ref: "./paths/positions.yaml#/item"
+  /assets/{id}/primary:
+    $ref: "./paths/positions.yaml#/setPrimary"
+  /assets/{id}:
+    $ref: "./paths/positions.yaml#/assetItem"
+  /deposits:
+    $ref: "./paths/deposits.yaml#/collection"
+  /deposits/xirr:
+    $ref: "./paths/deposits.yaml#/xirr"
+  /deposits/account-cap-usage:
+    $ref: "./paths/deposits.yaml#/accountCapUsage"
+  /deposits/account-cap-usage/adjustment:
+    $ref: "./paths/deposits.yaml#/accountCapAdjustment"
+  /binance-transfers:
+    $ref: "./paths/binance-transfers.yaml#/collection"
+  /binance-transfers/{id}:
+    $ref: "./paths/binance-transfers.yaml#/item"
+  /history:
+    $ref: "./paths/historia.yaml#/collection"
+  /cash-positions:
+    $ref: "./paths/cash-positions.yaml#/collection"
+  /news:
+    $ref: "./paths/news.yaml#/list"
+  /news/dates:
+    $ref: "./paths/news.yaml#/dates"
+  /news/assets:
+    $ref: "./paths/news.yaml#/assets"
+  /news/ingest:
+    $ref: "./paths/news.yaml#/ingest"
+  /news/notifications:
+    $ref: "./paths/news.yaml#/notifications"
+  /push/config:
+    $ref: "./paths/push.yaml#/config"
+  /push/subscriptions:
+    $ref: "./paths/push.yaml#/subscriptions"
+  /push/test-notifications:
+    $ref: "./paths/push.yaml#/testNotifications"
+  /bot/calendar:
+    $ref: "./paths/bot.yaml#/calendarList"
+  /bot/calendar/sync:
+    $ref: "./paths/bot.yaml#/calendarSync"
+  /bot/control:
+    $ref: "./paths/bot.yaml#/control"
+  /bot/plans:
+    $ref: "./paths/bot.yaml#/plansList"
+  /bot/plans/latest:
+    $ref: "./paths/bot.yaml#/planLatest"
+  /bot/plans/{date}:
+    $ref: "./paths/bot.yaml#/planByDate"
+  /bot/plans/ingest:
+    $ref: "./paths/bot.yaml#/plansIngest"
+  /bot/signals:
+    $ref: "./paths/bot.yaml#/signals"
+  /bot/trades:
+    $ref: "./paths/bot.yaml#/trades"
+  /bot/trades/pending-scalp:
+    $ref: "./paths/bot.yaml#/pendingScalp"
+  /bot/trades/{id}:
+    $ref: "./paths/bot.yaml#/tradeGet"
+  /bot/trades/{id}/close:
+    $ref: "./paths/bot.yaml#/tradeClose"
+  /bot/trades/{id}/actions:
+    $ref: "./paths/bot.yaml#/tradeActions"
+  /bot/trades/{id}/ticks:
+    $ref: "./paths/bot.yaml#/tradeTicks"
+  /bot/trades/{id}/request-manage:
+    $ref: "./paths/bot.yaml#/tradeRequestManage"
+  /bot/trades/{id}/scalp-claim:
+    $ref: "./paths/bot.yaml#/scalpClaim"
+  /bot/trades/{id}/scalp-finish:
+    $ref: "./paths/bot.yaml#/scalpFinish"
+  /bot/stats:
+    $ref: "./paths/bot.yaml#/stats"
+  /bot/equity:
+    $ref: "./paths/bot.yaml#/equity"
+  /bot/positions/open:
+    $ref: "./paths/bot.yaml#/openPositions"
+  /market-data/prices:
+    $ref: "./paths/market-data.yaml#/prices"
+  /market-data/prices/refresh:
+    $ref: "./paths/market-data.yaml#/pricesRefresh"
+  /market-data/fx-rates:
+    $ref: "./paths/market-data.yaml#/fxRates"
+  /market-data/fx-rates/refresh:
+    $ref: "./paths/market-data.yaml#/fxRatesRefresh"
+  /market-data/macro-state:
+    $ref: "./paths/market-data.yaml#/macroState"
+  /market-data/macro-state/history:
+    $ref: "./paths/market-data.yaml#/macroStateHistory"
+  /market-data/macro-state/refresh:
+    $ref: "./paths/market-data.yaml#/macroStateRefresh"
+  /market-data/macro/m2-manual:
+    $ref: "./paths/market-data.yaml#/macroM2Manual"
+  /market-data/benchmark-history:
+    $ref: "./paths/market-data.yaml#/benchmarkHistory"
+  /market-data/linear-regression:
+    $ref: "./paths/market-data.yaml#/linearRegression"
+  /market-data/trade-chart/tickers:
+    $ref: "./paths/trade-chart.yaml#/tickers"
+  /market-data/trade-chart:
+    $ref: "./paths/trade-chart.yaml#/chart"
+  /crypto-trades:
+    $ref: "./paths/crypto-trades.yaml#/collection"
+  /crypto-trades/tax-summary:
+    $ref: "./paths/crypto-trades.yaml#/taxSummary"
+  /tax-returns:
+    $ref: "./paths/tax-returns.yaml#/collection"
+  /inflation:
+    $ref: "./paths/inflation.yaml#/collection"
+  /inflation/sync:
+    $ref: "./paths/inflation.yaml#/sync"
+  /settings:
+    $ref: "./paths/settings.yaml#/collection"
+  /settings/{key}:
+    $ref: "./paths/settings.yaml#/item"
+  /purchase-sessions:
+    $ref: "./paths/purchase-sessions.yaml#/collection"
+  /purchase-sessions/active:
+    $ref: "./paths/purchase-sessions.yaml#/active"
+  /purchase-sessions/{id}:
+    $ref: "./paths/purchase-sessions.yaml#/item"
+  /purchase-sessions/{id}/items:
+    $ref: "./paths/purchase-sessions.yaml#/items"
+  /purchase-sessions/{id}/complete:
+    $ref: "./paths/purchase-sessions.yaml#/complete"
+  /rebalancing-transfers:
+    $ref: "./paths/rebalancing-transfers.yaml#/collection"
+
+tags:
+  - name: auth
+    description: Token exchange — obtain a backend JWT from a Google ID token
+  - name: positions
+    description: Investment positions (MAIN and RETIREMENT portfolios)
+  - name: deposits
+    description: >
+      Capital deposits, XIRR, and IKE/IKZE cap tracking. Deposits are the ONLY
+      capital record; all deposits count in XIRR and totalInvestedPln (ADR-035).
+  - name: binance-transfers
+    description: >
+      Binance transfer side ledger (PIT-38 crypto acquisition costs) — distilled
+      from deposits, not additional capital (ADR-035)
+  - name: historia
+    description: Daily portfolio value snapshots
+  - name: cash-positions
+    description: Cash balance snapshots
+  - name: news
+    description: >
+      Daily AI-researched asset news (ADR-041). Read endpoints (GET /news,
+      GET /news/dates) use the normal Google-JWT bearer auth; the machine
+      endpoints (GET /news/assets, POST /news/ingest, POST /news/notifications)
+      used by the nightly host cron job instead require the X-Service-Token header.
+  - name: push
+    description: >
+      Web Push opt-in per browser (ADR-108): VAPID config, subscription upsert/delete and
+      the "Wyślij testowe powiadomienie" test send. Bearer JWT only. The morning-report
+      fan-out itself is POST /news/notifications (service token).
+  - name: bot
+    description: >
+      OKX macro-calendar trading tracker (Phase 5, investing-only; ADR-089/090/092/093).
+      Machine-only writes (plan ingest, calendar sync, signals, all /bot/trades/**
+      writes) require the X-Service-Token header; dual-audience reads
+      (GET /bot/calendar, GET /bot/trades[/**], GET /bot/stats) accept either
+      credential; everything else is human bearer-JWT only. Live order placement
+      itself is scheduler-internal (no HTTP trigger) — see ADR-090.
+  - name: market-data
+    description: Live prices, FX rates, and regression chart data
+  - name: crypto-trades
+    description: Crypto trade log and PIT-38 tax summary
+  - name: tax-returns
+    description: Annual PIT-38 Belka tax returns
+  - name: inflation
+    description: Polish CPI data
+  - name: settings
+    description: >
+      Application settings (contribution limits, rebalancing.macro_derisk_enabled — gates
+      the ADR-044 macro blend interpolation — etc.). The blend calibration constants
+      (net-liq/Global-M2 weighting, smoothing window, steepness) are shipped as backend
+      code constants, not adjustable settings — see ADR-044 §7. The macro liquidity
+      de-risk state itself (blendFactor, zone, riskOff telemetry) is read via
+      GET /market-data/macro-state.
+  - name: purchase-sessions
+    description: Monthly DCA purchase planning and execution
+  - name: rebalancing-transfers
+    description: Ad-hoc position transfers outside purchase sessions

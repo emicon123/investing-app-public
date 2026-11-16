@@ -1,0 +1,843 @@
+# Bot + bot-calendar/plan/signal/trade/stats/control paths.
+# Auth split (SecurityConfig): machine-only writes → serviceTokenAuth;
+# dual-audience reads (frontend JWT OR host-script token) list both schemes (OR);
+# human-only reads/writes → bearerAuth. BotStatsController lives under /bot
+# (stats/equity/positions/open); everything else under its own /bot/* prefix.
+
+calendarList:
+  get:
+    tags: [bot]
+    summary: List macro calendar events (paged, dual-audience read)
+    operationId: listBotCalendar
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    parameters:
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: impact
+        in: query
+        description: Comma-separated BotImpact list, e.g. HIGH,MEDIUM.
+        schema:
+          type: string
+      - name: currency
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 50
+    responses:
+      "200":
+        description: Calendar page, eventTime ASC.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotCalendarEventPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+calendarSync:
+  post:
+    tags: [bot]
+    summary: Run the full calendar sync FF → TE → BLS-baseline (machine-only)
+    operationId: syncBotCalendar
+    description: |
+      Sequenced BotCalendarSyncOrchestrator.syncAll — ForexFactory first, then
+      TradingEconomics PPI-YoY enrichment (depends on FF sibling rows), then BLS
+      baseline capture. Never parallel, never reordered. Fail-soft per source.
+    security:
+      - serviceTokenAuth: []
+    responses:
+      "200":
+        description: Upsert total.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotCalendarSyncResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+control:
+  get:
+    tags: [bot]
+    summary: Read the kill-switch row (human-only)
+    operationId: getBotControl
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: Single-row trading flag.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotControlResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+  patch:
+    tags: [bot]
+    summary: Flip the kill switch (human-only)
+    operationId: updateBotControl
+    description: |
+      Pausing blocks NEW trade entry (POST /bot/trades + live watcher) — managing
+      or closing an open position is intentionally never blocked.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/UpdateBotControlRequest"
+    responses:
+      "200":
+        description: Updated flag row.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotControlResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+plansList:
+  get:
+    tags: [bot]
+    summary: List daily plans with nested scenarios (human-only)
+    operationId: listBotPlans
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+      - name: sort
+        in: query
+        schema:
+          type: string
+          default: planDate
+    responses:
+      "200":
+        description: Plans page, each with its scenarios eventTime ASC.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotDailyPlanPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+planLatest:
+  get:
+    tags: [bot]
+    summary: Latest daily plan (human-only)
+    operationId: getLatestBotPlan
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: Most recent plan with scenarios.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotDailyPlanSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+planByDate:
+  get:
+    tags: [bot]
+    summary: Daily plan by date (human-only)
+    operationId: getBotPlanByDate
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: date
+        in: path
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      "200":
+        description: Plan for the date with scenarios.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotDailyPlanSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+plansIngest:
+  post:
+    tags: [bot]
+    summary: Upsert a daily plan + ladders (machine-only)
+    operationId: ingestBotPlan
+    description: |
+      Upserts by planDate, replaces all scenarios. 422 on directional leg without
+      confidence/valid leverage, HOLD with non-null leverage, surpriseMin > surpriseMax.
+    security:
+      - serviceTokenAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/IngestBotPlanRequest"
+    responses:
+      "200":
+        description: Stored plan with scenarios.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotDailyPlanSingleResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+signals:
+  get:
+    tags: [bot]
+    summary: List signals, newest first (human-only)
+    operationId: listBotSignals
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: eventName
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+    responses:
+      "200":
+        description: Signals page, createdAt DESC.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotSignalPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+  post:
+    tags: [bot]
+    summary: Record a signal (machine-only)
+    operationId: createBotSignal
+    security:
+      - serviceTokenAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/CreateBotSignalRequest"
+    responses:
+      "201":
+        description: Stored signal (executed=false).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotSignalSingleResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+trades:
+  get:
+    tags: [bot]
+    summary: List trades, openedAt DESC (dual-audience read)
+    operationId: listBotTrades
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum: [OPEN, CLOSED]
+      - name: side
+        in: query
+        schema:
+          type: string
+          enum: [LONG, SHORT]
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+    responses:
+      "200":
+        description: Trades page enriched with live BTC price fields.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradePagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+  post:
+    tags: [bot]
+    summary: Open a trade (machine-only, kill-switch + guards)
+    operationId: createBotTrade
+    description: |
+      409 when trading is paused, when an OPEN trade exists (MAX_CONCURRENT_TRADE),
+      or when a trade opened within duplicate-guard seconds (DUPLICATE_TRADE_WINDOW,
+      logged at ERROR — must never fire if netting is correct).
+    security:
+      - serviceTokenAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/CreateBotTradeRequest"
+    responses:
+      "201":
+        description: Opened trade.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeSingleResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+tradeGet:
+  get:
+    tags: [bot]
+    summary: Trade by id (dual-audience read)
+    operationId: getBotTrade
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "200":
+        description: Trade with live-price enrichment.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+tradeClose:
+  patch:
+    tags: [bot]
+    summary: Close a trade (machine-only; never kill-switch-gated)
+    operationId: closeBotTrade
+    security:
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/CloseBotTradeRequest"
+    responses:
+      "200":
+        description: Closed trade.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeSingleResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+tradeActions:
+  post:
+    tags: [bot]
+    summary: Append a management action to a trade (machine-only)
+    operationId: addBotTradeAction
+    security:
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/CreateBotTradeActionRequest"
+    responses:
+      "201":
+        description: Stored action (the durable audit row).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeActionSingleResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+  get:
+    tags: [bot]
+    summary: Action timeline of a trade, oldest first (dual-audience read)
+    operationId: listBotTradeActions
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "200":
+        description: Actions, createdAt ASC.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeActionListResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+tradeTicks:
+  post:
+    tags: [bot]
+    summary: Append 5s scalp ticks to a trade (machine-only)
+    operationId: addBotTradeTicks
+    security:
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/CreateBotTradeTicksRequest"
+    responses:
+      "201":
+        description: Stored ticks (empty batch → empty list, still 201).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeTickListResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+  get:
+    tags: [bot]
+    summary: Ticks of a trade, oldest first (dual-audience read)
+    operationId: listBotTradeTicks
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+    responses:
+      "200":
+        description: Ticks, createdAt ASC (range applies only when both from+to present).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeTickListResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+tradeRequestManage:
+  post:
+    tags: [bot]
+    summary: Acknowledge a strategist-call trigger (machine-only, no-op stub)
+    operationId: requestBotTradeManage
+    description: |
+      Stateless 202 acknowledge today — no DB write, no queue. Contract kept so a
+      future queued executor can slot in without a wire change.
+    security:
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "202":
+        description: Accepted.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotManageAckResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+pendingScalp:
+  get:
+    tags: [bot]
+    summary: Post-trade outbox poll, oldest first (dual-audience read)
+    operationId: listPendingScalpTrades
+    description: |
+      Rows with scalp_session_status=PENDING. Intentionally ignores trading_enabled
+      (manages an already-open position). Non-paged envelope despite page/size absence.
+      The host scalp launcher calls it with X-Service-Token; like every GET under
+      /bot/trades/** (ADR-089) it also accepts the backend JWT. Task 191 derives each
+      route's credential from this `security` list, so it must match the served behaviour.
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    responses:
+      "200":
+        description: Pending rows.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeListResponse"
+      "401":
+        description: Neither a valid bearer JWT nor a valid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+scalpClaim:
+  post:
+    tags: [bot]
+    summary: Atomically claim a PENDING scalp row (machine-only)
+    operationId: claimScalpSession
+    description: |
+      Single-statement PENDING→RUNNING + SYSTEM/SCALP_SESSION_STARTED action row.
+      200 = claimed; 409 = someone else won (not an error to the launcher).
+      RUNNING-stuck rows are never auto-reclaimed (fail-closed).
+    security:
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "200":
+        description: Claimed trade.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeSingleResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+scalpFinish:
+  post:
+    tags: [bot]
+    summary: Finish a RUNNING scalp row (machine-only)
+    operationId: finishScalpSession
+    security:
+      - serviceTokenAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/bot.yaml#/ScalpFinishRequest"
+    responses:
+      "200":
+        description: Finished trade (SYSTEM/SCALP_SESSION_FINISHED row recorded).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeSingleResponse"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+stats:
+  get:
+    tags: [bot]
+    summary: Trade aggregate stats (dual-audience read)
+    operationId: getBotStats
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    responses:
+      "200":
+        description: Totals, win rate, PnL, hold time, best/worst.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotStatsResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+equity:
+  get:
+    tags: [bot]
+    summary: Daily cumulative PnL series (human-only)
+    operationId: getBotEquity
+    description: Aggregated by Europe/Warsaw day over CLOSED trades.
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: Equity points, date ASC.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotEquityListResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+openPositions:
+  get:
+    tags: [bot]
+    summary: Open positions alias (human-only, non-paged envelope)
+    operationId: listBotOpenPositions
+    description: |
+      Same rows as GET /bot/trades?status=OPEN but a ListResponse envelope (no
+      `page`) — the frontend normalizes this; Go must emit data+meta exactly.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+    responses:
+      "200":
+        description: Open trades with live-price enrichment.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/bot.yaml#/BotTradeListResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"

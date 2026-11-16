@@ -1,0 +1,55 @@
+{
+  "Positions": [
+    {
+      "Portfolio": "FIXED",
+      "Ticker": "A1",
+      "Units": "2.00000000",
+      "TotalSpentPln": "200.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "A1",
+      "Units": "9.00000000",
+      "TotalSpentPln": "850.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "A2",
+      "Units": "1.00000000",
+      "TotalSpentPln": null
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "B1",
+      "Units": "17.50000000",
+      "TotalSpentPln": "330.0000"
+    }
+  ],
+  "Lots": [
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "A1",
+      "Units": "4.00000000",
+      "PricePln": "100.00000000",
+      "CostPln": "400.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "B1",
+      "Units": "7.50000000",
+      "PricePln": "20.00000000",
+      "CostPln": "150.0000"
+    }
+  ],
+  "Deposits": [
+    {
+      "Portfolio": "VARIABLE",
+      "Amount": "1500.0000",
+      "Comment": null
+    }
+  ],
+  "Cash": [
+    "VARIABLE=0.0000",
+    "FIXED=0.0000"
+  ]
+}

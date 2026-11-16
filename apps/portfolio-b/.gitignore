@@ -1,0 +1,25 @@
+# Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Node
+node_modules/
+**/node_modules/
+frontend-web/dist/
+shared-ts/dist/
+
+# Env / secrets
+infra/.env
+frontend-web/.env
+infra/certs/*.crt
+infra/certs/*.key
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.class
+
+# OS
+.DS_Store
+Thumbs.db

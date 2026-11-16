@@ -1,0 +1,16 @@
+{
+  "status": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALIDATION_ERROR",
+        "field": "items",
+        "message": "at least one item is required"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

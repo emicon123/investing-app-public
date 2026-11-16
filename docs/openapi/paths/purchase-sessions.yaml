@@ -1,0 +1,260 @@
+collection:
+  post:
+    tags: [purchase-sessions]
+    summary: Create a new purchase session (runs full rebalancing plan)
+    operationId: createPurchaseSession
+    security:
+      - bearerAuth: []
+    description: |
+      At most one PLANNED session at a time. Returns 409 if one exists.
+      The backend runs the full plan algorithm internally:
+      rebalancing -> IKE/IKZE allocation -> ETF substitution -> migration triples.
+
+      Cash computation for the MAIN portfolio (ADR-033):
+        grossCashPln  = cashOverridePln ?? SUM(latest cash_positions snapshot)
+        cashOnHandPln = max(0, grossCashPln - settings.retirement.monthly_contribution_pln)
+        deployable    = cashOnHandPln - 0.05 * totalPortfolioValue
+
+      grossCashPln is internal to the rebalancing computation; it is not
+      persisted and not returned by this endpoint.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/purchase-sessions.yaml#/CreatePurchaseSessionRequest"
+          example:
+            portfoliosIncluded: "BOTH"
+            cashOverridePln: null
+            notes: "June 2026 DCA"
+    responses:
+      "201":
+        description: Session created with full plan.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/purchase-sessions.yaml#/PurchaseSessionSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  get:
+    tags: [purchase-sessions]
+    summary: List completed purchase sessions
+    operationId: listPurchaseSessions
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 100
+    description: Returns DONE sessions only, in reverse chronological order.
+    responses:
+      "200":
+        description: Paginated DONE sessions.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/purchase-sessions.yaml#/PurchaseSessionsPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+active:
+  get:
+    tags: [purchase-sessions]
+    summary: Get the current PLANNED session
+    operationId: getActivePurchaseSession
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: Active PLANNED session with full detail.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/purchase-sessions.yaml#/PurchaseSessionSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        description: No active PLANNED session exists.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+item:
+  delete:
+    tags: [purchase-sessions]
+    summary: Cancel a PLANNED session
+    operationId: deletePurchaseSession
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "204":
+        description: Session cancelled.
+      "400":
+        description: Session is already DONE and cannot be cancelled.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+items:
+  patch:
+    tags: [purchase-sessions]
+    summary: Update actual quantities after broker execution
+    operationId: patchSessionItems
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/purchase-sessions.yaml#/PatchSessionItemsRequest"
+    responses:
+      "200":
+        description: Updated session detail.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/purchase-sessions.yaml#/PurchaseSessionSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        description: Session is already DONE.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+complete:
+  post:
+    tags: [purchase-sessions]
+    summary: Mark session DONE, write asset purchases, and auto-create deposits
+    operationId: completePurchaseSession
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    description: |
+      Irreversible. Atomically (single @Transactional):
+      1. Processes migration SELL items first (negative units_delta)
+      2. Processes all BUY items
+      3. Writes asset_purchases rows and updates each touched asset's recorded cost
+         (positions.total_spent_pln) with the asset-level average-cost rule, NETTED PER
+         ASSET across the whole session: migration/donor sells against buys and
+         compensating buys of the same asset are a swap that carries cost (only an
+         imbalance is a sale or a market buy); other assets are independent; a buy on an
+         asset that holds units but has no recorded cost invents no cost. Prices come
+         from price_cache (no network call inside the transaction).
+      4. Sets status=DONE, done_at=NOW()
+      5. Auto-creates Deposit records grouped by (portfolio, accountType, exchange).
+         exchange is derived from the Position entity for each session item.
+         Excludes isMigrationSell=true items and zero-effective-unit items, then
+         NETS migration-sell proceeds against the matching group: the migration-triple
+         IKZE re-buy is funded by intra-IKZE sale proceeds and must not create a
+         deposit (statutory-limit-neutral, ADR-035). Groups netted to <= 0 produce
+         no deposit row. Each deposit: currency=PLN, depositDate=today (Europe/Warsaw),
+         comment="Auto from session #<id>" (ADR-033). Binance deposits are real new
+         capital and COUNT in XIRR/totalInvestedPln (ADR-035 — no exclusion).
+      6. Writes one binance_transfers side-ledger row (source=SESSION, sessionId set)
+         with the session's total effective Binance purchase value in PLN —
+         the PIT-38 acquisition-cost record (ADR-035). Skipped when the session
+         contains no Binance purchases.
+
+      Items with actual_units=null fall back to planned_units.
+      Items with actual_units=0 are skipped.
+
+      The depositsCreated field in the response reports how many Deposit
+      rows were auto-created so the frontend can confirm and refresh
+      (deposits, xirr, and binance-transfers queries).
+    responses:
+      "200":
+        description: >
+          Session completed. Returns the completion result including
+          depositsCreated — the number of Deposit rows auto-created from
+          this session's items.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/purchase-sessions.yaml#/PurchaseSessionCompleteResponse"
+            example:
+              data:
+                sessionId: 7
+                status: "DONE"
+                purchasesWritten: 12
+                updatedPositionIds: [3, 5, 8]
+                depositsCreated: 2
+              meta:
+                requestId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                timestamp: "2026-06-11T18:30:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        description: Session is already DONE.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

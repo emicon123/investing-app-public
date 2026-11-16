@@ -1,0 +1,82 @@
+# --- Enums ---
+Portfolio:
+  type: string
+  enum: [MAIN, RETIREMENT]
+
+Exchange:
+  type: string
+  enum: [XTB, BINANCE]
+
+AssetClass:
+  type: string
+  enum: [STOCK, CRYPTO, ETF, CURRENCY]
+
+Currency:
+  type: string
+  enum: [PLN, EUR, USD, CHF, GBP]
+
+AccountType:
+  type: string
+  enum: [IKE, IKZE, REGULAR]
+
+PriceSource:
+  type: string
+  enum: [YAHOO, RECONSTRUCTED_PRECISE, RECONSTRUCTED_APPROXIMATE]
+  description: >
+    Provenance of a historical price point (ADR-085). YAHOO = returned directly by Yahoo
+    Finance's v8 chart API — the default for every ticker. RECONSTRUCTED_PRECISE = Yahoo
+    returned no usable history and the point was reconstructed from a physically-backed ETP's
+    disclosed coin-entitlement ratio decaying at a fixed, disclosed fee rate with no staking
+    variable in play (ETNVIRBTCP.WA, ETNVIRXRP.WA) — high confidence. RECONSTRUCTED_APPROXIMATE
+    = same reconstruction, but additionally netted against a disclosed staking-yield figure held
+    constant over the reconstructed window (ETNVIRETH.WA, ETNVIRSOL.WA) — meaningfully wider
+    error bars; see ADR-085 §4/§8 for why.
+
+TradeSide:
+  type: string
+  enum: [BUY, SELL]
+
+TradeSource:
+  type: string
+  enum: [MANUAL, IMPORT]
+
+SessionStatus:
+  type: string
+  enum: [PLANNED, DONE]
+
+PortfoliosIncluded:
+  type: string
+  enum: [BOTH, MAIN, RETIREMENT]
+
+BinanceTransferSource:
+  type: string
+  enum: [MANUAL, SESSION]
+  description: >
+    MANUAL = entered by the user (mirrors the spreadsheet "Wpłaty Binance" table,
+    may carry a native amount/currency). SESSION = auto-created on purchase-session
+    completion; amountPln is the session's total Binance purchase value
+    (approximation of the transfer amount).
+
+TradeType:
+  type: string
+  enum:
+    [
+      DCA_BUY,
+      MIGRATION_BUY,
+      MIGRATION_SELL,
+      REBALANCING_TRIM_SELL,
+      REBALANCING_REINVEST_BUY,
+      SEED_IMPORT,
+    ]
+  description: >
+    Classifies why an asset_purchases row exists (ADR-057). DCA_BUY = regular
+    purchase-session buy with neither migration flag set. MIGRATION_BUY /
+    MIGRATION_SELL = IKE/IKZE migration-triple legs
+    (purchase_session_items.is_migration_buy / is_migration_sell).
+    REBALANCING_TRIM_SELL / REBALANCING_REINVEST_BUY = legs of the manual
+    "Sprzedaj" rebalancing-transfer flow (asset_purchases.session_id is NULL for
+    these — POST /rebalancing-transfers). SEED_IMPORT = the one-time V9 synthetic
+    backfill session ("Initial import from Google Sheets", dated 2024-01-01) — not
+    a real trade event; included for completeness but recommended to render muted/
+    excluded by default in the frontend.
+

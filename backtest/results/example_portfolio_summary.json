@@ -1,0 +1,166 @@
+[
+  {
+    "label": "1yr",
+    "start": "2025-06-16",
+    "months": 12,
+    "invested_pln": 12000.0,
+    "median_weeks_in_window": 522,
+    "schemes": {
+      "fixed_target": {
+        "final_pln": 13454,
+        "roi_pct": 12.1,
+        "irr_annual_pct": 23.1,
+        "avg_max_alloc_pct": 30.0,
+        "avg_hhi": 0.16,
+        "max_drawdown_pct": 0.0
+      },
+      "geom_1.25": {
+        "final_pln": 13435,
+        "roi_pct": 12.0,
+        "irr_annual_pct": 22.8,
+        "avg_max_alloc_pct": 20.4,
+        "avg_hhi": 0.145,
+        "max_drawdown_pct": 0.0
+      },
+      "geom_1.5": {
+        "final_pln": 13342,
+        "roi_pct": 11.2,
+        "irr_annual_pct": 21.3,
+        "avg_max_alloc_pct": 27.4,
+        "avg_hhi": 0.178,
+        "max_drawdown_pct": 0.0
+      },
+      "geom_2.0": {
+        "final_pln": 13126,
+        "roi_pct": 9.4,
+        "irr_annual_pct": 17.8,
+        "avg_max_alloc_pct": 40.3,
+        "avg_hhi": 0.274,
+        "max_drawdown_pct": 0.0
+      }
+    }
+  },
+  {
+    "label": "3yr",
+    "start": "2023-06-16",
+    "months": 36,
+    "invested_pln": 36000.0,
+    "median_weeks_in_window": 522,
+    "schemes": {
+      "fixed_target": {
+        "final_pln": 52332,
+        "roi_pct": 45.4,
+        "irr_annual_pct": 25.8,
+        "avg_max_alloc_pct": 30.0,
+        "avg_hhi": 0.16,
+        "max_drawdown_pct": -2.9
+      },
+      "geom_1.25": {
+        "final_pln": 51366,
+        "roi_pct": 42.7,
+        "irr_annual_pct": 24.5,
+        "avg_max_alloc_pct": 21.6,
+        "avg_hhi": 0.143,
+        "max_drawdown_pct": -1.7
+      },
+      "geom_1.5": {
+        "final_pln": 50456,
+        "roi_pct": 40.2,
+        "irr_annual_pct": 23.2,
+        "avg_max_alloc_pct": 24.8,
+        "avg_hhi": 0.161,
+        "max_drawdown_pct": -2.4
+      },
+      "geom_2.0": {
+        "final_pln": 49073,
+        "roi_pct": 36.3,
+        "irr_annual_pct": 21.2,
+        "avg_max_alloc_pct": 35.2,
+        "avg_hhi": 0.23,
+        "max_drawdown_pct": -3.2
+      }
+    }
+  },
+  {
+    "label": "5yr",
+    "start": "2021-06-16",
+    "months": 60,
+    "invested_pln": 60000.0,
+    "median_weeks_in_window": 522,
+    "schemes": {
+      "fixed_target": {
+        "final_pln": 99287,
+        "roi_pct": 65.5,
+        "irr_annual_pct": 20.2,
+        "avg_max_alloc_pct": 30.0,
+        "avg_hhi": 0.16,
+        "max_drawdown_pct": -5.4
+      },
+      "geom_1.25": {
+        "final_pln": 97913,
+        "roi_pct": 63.2,
+        "irr_annual_pct": 19.7,
+        "avg_max_alloc_pct": 22.7,
+        "avg_hhi": 0.146,
+        "max_drawdown_pct": -7.2
+      },
+      "geom_1.5": {
+        "final_pln": 96549,
+        "roi_pct": 60.9,
+        "irr_annual_pct": 19.1,
+        "avg_max_alloc_pct": 25.3,
+        "avg_hhi": 0.163,
+        "max_drawdown_pct": -8.6
+      },
+      "geom_2.0": {
+        "final_pln": 94252,
+        "roi_pct": 57.1,
+        "irr_annual_pct": 18.1,
+        "avg_max_alloc_pct": 35.8,
+        "avg_hhi": 0.233,
+        "max_drawdown_pct": -10.5
+      }
+    }
+  },
+  {
+    "label": "8yr",
+    "start": "2018-06-16",
+    "months": 96,
+    "invested_pln": 96000.0,
+    "median_weeks_in_window": 522,
+    "schemes": {
+      "fixed_target": {
+        "final_pln": 212620,
+        "roi_pct": 121.5,
+        "irr_annual_pct": 19.3,
+        "avg_max_alloc_pct": 30.0,
+        "avg_hhi": 0.16,
+        "max_drawdown_pct": -7.9
+      },
+      "geom_1.25": {
+        "final_pln": 213532,
+        "roi_pct": 122.4,
+        "irr_annual_pct": 19.4,
+        "avg_max_alloc_pct": 24.1,
+        "avg_hhi": 0.15,
+        "max_drawdown_pct": -9.2
+      },
+      "geom_1.5": {
+        "final_pln": 213654,
+        "roi_pct": 122.6,
+        "irr_annual_pct": 19.4,
+        "avg_max_alloc_pct": 26.3,
+        "avg_hhi": 0.166,
+        "max_drawdown_pct": -10.2
+      },
+      "geom_2.0": {
+        "final_pln": 212524,
+        "roi_pct": 121.4,
+        "irr_annual_pct": 19.3,
+        "avg_max_alloc_pct": 35.6,
+        "avg_hhi": 0.229,
+        "max_drawdown_pct": -11.4
+      }
+    }
+  }
+]

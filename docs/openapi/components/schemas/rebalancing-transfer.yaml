@@ -1,0 +1,114 @@
+# --- Rebalancing Transfer ---
+RebalancingTransferLeg:
+  type: object
+  description: >
+    One side of a rebalancing swap — either the single `sold` leg or one
+    entry in the `buys` array. `units` and `pricePln` are always positive;
+    which position gains vs. loses units is determined entirely by
+    whether this leg appears under `sold` or `buys`.
+  required: [ticker, accountType, units, pricePln]
+  properties:
+    ticker:
+      type: string
+      description: >
+        Must match an existing position's ticker within the request's
+        top-level `portfolio` — resolved as `(ticker, portfolio)`, not
+        by ticker alone (see `RebalancingTransferRequest.portfolio`).
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    regularCurrency:
+      oneOf:
+        - $ref: "./enums.yaml#/Currency"
+        - type: "null"
+      description: >
+        Required when accountType=REGULAR; ignored for IKE/IKZE. Selects
+        which XTB regular sub-bucket the units are drawn from (sold leg)
+        or added to (buy legs): PLN, EUR, or USD. A position has no
+        regular sub-bucket for CHF or GBP, so those two Currency values
+        are not valid here.
+    units:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+      minimum: 0.00000001
+      description: >
+        Always a positive quantity — the amount sold (for `sold`) or
+        bought (for each entry in `buys`).
+    pricePln:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+      minimum: 0.01
+      description: >
+        Per-unit price in PLN actually realized for this leg. The web
+        dialog collects the actual transaction total (PLN received for
+        the sold leg, PLN paid for each buy leg) and derives
+        `pricePln = amountPln / units` before calling this endpoint —
+        it is not necessarily the live market price.
+
+RebalancingTransferRequest:
+  type: object
+  description: >
+    Sells one leg and simultaneously buys one or more other legs in a
+    single transaction (the "Przenieś wartość" dialog). A transfer is
+    always scoped to one portfolio's book — `portfolio` is a required,
+    top-level field, not per-leg, because the sold leg and every buy leg
+    always share the same portfolio (MAIN or RETIREMENT); a single
+    transfer can never move value across portfolios. Each leg's `ticker`
+    is resolved together with this top-level `portfolio` as a composite
+    `(ticker, portfolio)` key — `ticker` alone is **not** unique, since
+    `positions` has a `(ticker, exchange, portfolio)` unique constraint
+    and many tickers exist as separate rows in both MAIN and RETIREMENT
+    (e.g. `HUT`, `SOL-USD`, `ETH-USD`, `PL.ETNVIRSOL`, `PL.ETNVIRETH`).
+    `exchange` is still not part of the request — a ticker never
+    collides across exchanges within the same portfolio — but omitting
+    `portfolio` (or resolving by ticker alone) risks silently resolving
+    the wrong portfolio's row, exactly the incident ADR-063 documents.
+  required: [portfolio, sold, buys]
+  properties:
+    portfolio:
+      allOf:
+        - $ref: "./enums.yaml#/Portfolio"
+      description: >
+        The single portfolio this entire transfer is scoped to. Every
+        leg's `ticker` is resolved against `(ticker, this portfolio)` —
+        never against ticker alone.
+    sold:
+      allOf:
+        - $ref: "#/RebalancingTransferLeg"
+      description: The single leg being sold.
+    buys:
+      type: array
+      minItems: 1
+      items:
+        $ref: "#/RebalancingTransferLeg"
+      description: One or more legs bought with the sale proceeds.
+
+RebalancingTransferResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: object
+      required: [affectedTickers, message]
+      properties:
+        affectedTickers:
+          type: array
+          items:
+            type: string
+          description: >
+            Distinct tickers touched by this transfer — the sold
+            ticker followed by each bought ticker, in the order first
+            affected.
+          example: ["BTC-USD", "CSPX.L", "4GLD.DE"]
+        message:
+          type: string
+          description: Human-readable summary of the completed transfer.
+          example: "Rebalancing transfer completed: sold BTC-USD, bought 2 asset(s)."
+    meta:
+      $ref: "./common.yaml#/Meta"
+

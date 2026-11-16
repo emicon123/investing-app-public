@@ -1,0 +1,16 @@
+{
+  "status": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALIDATION_ERROR",
+        "field": "sold.accountType",
+        "message": "must be one of IKE_TATA, IKE_MAMA, IKZE_TATA, IKZE_MAMA, INNE"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

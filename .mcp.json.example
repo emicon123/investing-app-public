@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "gsheets": {
+      "command": "uvx",
+      "args": ["mcp-google-sheets@latest"],
+      "cwd": "/home/<your-username>/.config",
+      "env": {
+        "CREDENTIALS_PATH": "/home/<your-username>/.config/credentials.json",
+        "TOKEN_PATH": "/home/<your-username>/.config/gsheets-mcp-token.json"
+      }
+    },
+    "postgres": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "--network", "host",
+        "-e", "DATABASE_URI",
+        "crystaldba/postgres-mcp:latest",
+        "--access-mode", "unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "postgresql://<db-user>:<db-password>@localhost:5432/<db-name>"
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+# --- Inflation ---
+InflationEntry:
+  type: object
+  required: [year, month, cpiValue]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    year:
+      type: integer
+      minimum: 2000
+      maximum: 2100
+    month:
+      type: integer
+      minimum: 1
+      maximum: 12
+    cpiValue:
+      type: number
+      format: double
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+CreateInflationRequest:
+  type: object
+  required: [year, month, cpiValue]
+  properties:
+    year:
+      type: integer
+      minimum: 2000
+      maximum: 2100
+    month:
+      type: integer
+      minimum: 1
+      maximum: 12
+    cpiValue:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+
+InflationPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/InflationEntry"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+

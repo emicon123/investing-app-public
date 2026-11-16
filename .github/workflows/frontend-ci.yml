@@ -1,0 +1,107 @@
+name: Frontend CI
+
+# Task 193: the pre-merge gate for the React workspace (packages/common/{ts,ui} + the three
+# apps' frontend-web). Lint, type-check, unit tests and a production build. No secrets, no
+# deployment: `deploy-pi.yml` still builds the SPAs inside the nginx Dockerfile at deploy
+# time, so the builds here are a safety net that fails a PR before it reaches main.
+#
+# Why the odd lint setup (task 188): ESLint lives in tools/lint, its own npm project with
+# its own lockfile, because typescript-eslint needs `typescript < 6.1` (the classic JS API)
+# while the apps compile with TypeScript 7. `npm run lint:install` installs it; the root
+# `npm run lint` script runs it over the whole workspace. ESLint 10 needs Node
+# ^20.19 || ^22.13 || >=24 (we use 24.16.0, same as the nginx Dockerfile's node:24).
+#
+# Everything is pinned to an exact version; bump deliberately.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/*/frontend-web/**'
+      - 'packages/common/ts/**'
+      - 'packages/common/ui/**'
+      - 'tools/lint/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'eslint.config.mjs'
+      - 'vitest.config.mts'
+      - 'vitest.setup.ts'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/*/frontend-web/**'
+      - 'packages/common/ts/**'
+      - 'packages/common/ui/**'
+      - 'tools/lint/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'eslint.config.mjs'
+      - 'vitest.config.mts'
+      - 'vitest.setup.ts'
+      - '.github/workflows/frontend-ci.yml'
+
+# A newer push to the same PR supersedes the older run; runs on main always finish.
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: lint, type-check, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Node 24 is what the three nginx/frontend Dockerfiles build with (node:24-alpine).
+      # setup-node v7.1.0 (2026-10-08). The npm cache key covers both lockfiles: the root
+      # workspace one and the separate tools/lint one.
+      - name: Set up Node
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24.16.0'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tools/lint/package-lock.json
+
+      # Root npm workspace (packages/common/{ts,ui} + apps/*/frontend-web). Fails if
+      # package-lock.json is out of sync with the package.json files.
+      - name: Install workspace dependencies
+        run: npm ci
+
+      # The standalone ESLint project (tools/lint, its own lockfile).
+      - name: Install lint toolchain
+        run: npm run lint:install
+
+      # 0 errors and 0 warnings (the ratchet left after task 188 reached zero). `npm run lint -- <args>`
+      # appends the args to the eslint command; the root script is also strict by default.
+      - name: ESLint
+        run: npm run lint -- --max-warnings=0
+
+      # TypeScript 7 (root devDependency of the workspace). The two shared packages have no
+      # build step of their own, so they are type-checked explicitly.
+      - name: Type-check packages/common/ts
+        run: npx --no-install tsc --noEmit -p packages/common/ts
+
+      - name: Type-check packages/common/ui
+        run: npx --no-install tsc --noEmit -p packages/common/ui
+
+      # One vitest run for the whole workspace (root vitest.config.mts, jsdom).
+      - name: Unit tests (vitest)
+        run: npx --no-install vitest run
+
+      # Each app's `build` script is `tsc --noEmit && vite build`, so these steps are also
+      # the three apps' type-check; a separate tsc step would only repeat it.
+      - name: Type-check and build apps/main/frontend-web
+        run: npm run build --workspace=apps/main/frontend-web
+
+      - name: Type-check and build apps/portfolio-b/frontend-web
+        run: npm run build --workspace=apps/portfolio-b/frontend-web
+
+      - name: Type-check and build apps/portfolio-c/frontend-web
+        run: npm run build --workspace=apps/portfolio-c/frontend-web

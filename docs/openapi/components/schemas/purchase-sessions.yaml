@@ -1,0 +1,263 @@
+# --- Purchase Sessions ---
+PurchaseSessionItemPlanned:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    ticker:
+      type: string
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    exchange:
+      $ref: "./enums.yaml#/Exchange"
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    plannedUnits:
+      type: number
+      format: double
+    plannedValuePln:
+      type: number
+      format: double
+    actualUnits:
+      type: [number, "null"]
+      format: double
+    actualValuePln:
+      type: [number, "null"]
+      format: double
+    isMigrationSell:
+      type: boolean
+      default: false
+    isMigrationBuy:
+      type: boolean
+      description: >
+        Compensating-buy leg of an IKE/IKZE crypto-donor migration (doc 05 §8) —
+        the purchases UI renders it distinctly from an ordinary DCA buy.
+    priceCurrency:
+      $ref: "./enums.yaml#/Currency"
+
+PurchaseSessionAccountLimits:
+  type: object
+  description: >
+    Per-portfolio IKE/IKZE cap usage remaining for this session (port of Java's
+    AccountLimitsDto). Remaining figures silently incorporate any manual correction
+    from account_cap_adjustment (ADR-058) and stay floored at zero — this figure
+    directly caps how much of a session's budget may go to IKE/IKZE.
+  properties:
+    ikeAnnualLimitPln:
+      type: number
+      format: double
+    ikeUsedPln:
+      type: number
+      format: double
+    ikeRemainingPln:
+      type: number
+      format: double
+    ikzeAnnualLimitPln:
+      type: number
+      format: double
+    ikzeUsedPln:
+      type: number
+      format: double
+    ikzeRemainingPln:
+      type: number
+      format: double
+
+PurchaseSessionCurrencyBreakdown:
+  type: object
+  properties:
+    xtbPln:
+      type: number
+      format: double
+    xtbEur:
+      type: number
+      format: double
+    xtbUsd:
+      type: number
+      format: double
+    binanceEur:
+      type: number
+      format: double
+    pkoCHF:
+      type: number
+      format: double
+    xtbEurPln:
+      type: number
+      format: double
+      description: XTB EUR leg converted to PLN (port of CurrencyBreakdownDto).
+    xtbUsdPln:
+      type: number
+      format: double
+      description: XTB USD leg converted to PLN (port of CurrencyBreakdownDto).
+    binanceEurPln:
+      type: number
+      format: double
+      description: Binance EUR leg converted to PLN (port of CurrencyBreakdownDto).
+    eurPlnRate:
+      type: number
+      format: double
+      description: EUR→PLN rate used for the conversions above.
+    usdPlnRate:
+      type: number
+      format: double
+      description: USD→PLN rate used for the conversions above.
+
+PurchaseSession:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    status:
+      $ref: "./enums.yaml#/SessionStatus"
+    portfoliosIncluded:
+      $ref: "./enums.yaml#/PortfoliosIncluded"
+    cashOverridePln:
+      type: [number, "null"]
+      format: double
+    notes:
+      type: [string, "null"]
+    currencyBreakdown:
+      $ref: "#/PurchaseSessionCurrencyBreakdown"
+    items:
+      type: array
+      items:
+        $ref: "#/PurchaseSessionItemPlanned"
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+    doneAt:
+      type: [string, "null"]
+      format: date-time
+      readOnly: true
+    plannedAt:
+      type: string
+      format: date-time
+      description: >
+        When the session was planned (port of Java's PurchaseSessionDetail/Summary
+        plannedAt — the purchases UI renders it as "Zaplanowana").
+    mainBudgetPln:
+      type: number
+      format: double
+    retirementBudgetPln:
+      type: number
+      format: double
+      description: >
+        Retirement-portfolio purchase budget for this session (null when RETIREMENT
+        is not in portfoliosIncluded; the purchases UI renders it per-portfolio).
+    mainLimitsRemaining:
+      $ref: "#/PurchaseSessionAccountLimits"
+    retirementLimitsRemaining:
+      $ref: "#/PurchaseSessionAccountLimits"
+    itemCount:
+      type: integer
+      description: >
+        Number of items in the session (list endpoint only — the history table's
+        row-expansion affordance).
+    totalActualPln:
+      type: number
+      format: double
+      description: >
+        Sum of actualValuePln over the session's items (list endpoint only; null
+        when zero — port of PurchaseSessionService.listSessions' null-on-zero rule).
+        The session-history table renders it per row.
+
+CreatePurchaseSessionRequest:
+  type: object
+  required: [portfoliosIncluded]
+  properties:
+    portfoliosIncluded:
+      $ref: "./enums.yaml#/PortfoliosIncluded"
+    cashOverridePln:
+      type: [number, "null"]
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+    notes:
+      type: [string, "null"]
+
+PatchSessionItemsRequest:
+  type: object
+  required: [items]
+  properties:
+    items:
+      type: array
+      items:
+        type: object
+        required: [id]
+        properties:
+          id:
+            type: integer
+            format: int64
+          actualUnits:
+            type: [number, "null"]
+            format: double
+          actualValuePln:
+            type: [number, "null"]
+            format: double
+
+PurchaseSessionSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/PurchaseSession"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+PurchaseSessionsPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/PurchaseSession"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+PurchaseSessionCompleteResponse:
+  type: object
+  description: >
+    Response returned by POST /purchase-sessions/{id}/complete.
+    Reports what the completion wrote, including the number of Deposit
+    records auto-created from the completed session items (ADR-033).
+  required: [data, meta]
+  properties:
+    data:
+      type: object
+      required: [sessionId, status, purchasesWritten, updatedPositionIds, depositsCreated]
+      properties:
+        sessionId:
+          type: integer
+          format: int64
+        status:
+          $ref: "./enums.yaml#/SessionStatus"
+        purchasesWritten:
+          type: integer
+        updatedPositionIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        depositsCreated:
+          type: integer
+          description: >
+            Number of Deposit rows auto-created from the session items.
+            One deposit per (portfolio, accountType, exchange) group of non-sell,
+            non-zero items, after netting migration-sell proceeds against the
+            matching group (the migration IKZE re-buy creates no deposit — ADR-035);
+            exchange is derived from the Position entity.
+            Zero if no deposits were created
+            (e.g. all items were migration sells or had zero units).
+            Does not count the binance_transfers side-ledger row.
+          example: 2
+    meta:
+      $ref: "./common.yaml#/Meta"
+

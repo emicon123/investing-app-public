@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/v2.8.0/configuration-schema.json
+#
+# Generates server.gen.go from this app's checked-in bundle (docs/openapi.yaml —
+# snapshotted from the live Java backend's springdoc endpoint, Phase 6). Run via:
+#   go generate ./openapi/
+# (or: go tool oapi-codegen -config oapi-codegen-config.yaml ../../docs/openapi.yaml
+# from the backend-go/ directory).
+package: openapi
+generate:
+  chi-server: true
+  models: true
+  embedded-spec: true
+output: server.gen.go

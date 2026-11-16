@@ -1,0 +1,72 @@
+# --- Tax Returns ---
+TaxReturn:
+  type: object
+  required: [year, grossGain, taxPaid, effectiveRatePct]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    year:
+      type: integer
+    grossGain:
+      type: number
+      format: double
+    taxPaid:
+      type: number
+      format: double
+    effectiveRatePct:
+      type: number
+      format: double
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+    updatedAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+CreateTaxReturnRequest:
+  type: object
+  required: [year, grossGain, taxPaid, effectiveRatePct]
+  properties:
+    year:
+      type: integer
+      minimum: 2021
+      maximum: 2100
+    grossGain:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+    taxPaid:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+      minimum: 0
+    effectiveRatePct:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+      minimum: 0
+      maximum: 100
+
+TaxReturnsPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/TaxReturn"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+

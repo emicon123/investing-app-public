@@ -1,0 +1,22 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    # The reference tables portfolio-b and portfolio-c share column for column (price_cache, fx_rate_cache,
+    # settings, inflation; the tracked-ticker read of positions touches only columns both have):
+    # ONE query set for both apps (task 180 wave 5, ADR-113). The schema is portfolio-b's ordered Flyway
+    # list, exactly as in apps/portfolio-b/backend-go/sqlc.yaml (never a copy of the DDL);
+    # refdata/parity_integration_test.go runs every query against BOTH apps' migrated databases, so
+    # a drift in either schema fails there. Re-run the list (backend-go/hack/gen-sqlc-schema-list.sh)
+    # whenever portfolio-b adds a migration, and run `sqlc generate` (v1.31.1) here; CI's sqlc-drift job
+    # checks this directory.
+    schema:
+      - "../../../../../../apps/portfolio-b/db/migration/V1__baseline_schema.sql"
+      - "../../../../../../apps/portfolio-b/db/migration/V2__default_reference_data.sql"
+    queries: "queries"
+    gen:
+      go:
+        package: "sqlcgen"
+        out: "sqlcgen"
+        sql_package: "pgx/v5"
+        emit_pointers_for_null_types: true
+        omit_unused_structs: true

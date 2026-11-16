@@ -1,0 +1,25 @@
+# infra/bot/scalp-launcher.service — example systemd USER unit for scalp-launcher.sh
+# (ADR-092, task 146 §5). Host-side only: NOT a Docker service, NOT cron.
+#
+# Install on the Pi host (manual step, cannot be verified in CI or Docker):
+#   mkdir -p ~/.config/systemd/user
+#   cp infra/bot/scalp-launcher.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now scalp-launcher
+#   journalctl --user -u scalp-launcher -f   # + infra/bot/scalp-launcher.log
+[Unit]
+Description=Post-trade scalp session launcher (investing-app bot, ADR-092)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/Claude-Code/investing-app/infra/bot/scalp-launcher.sh --loop
+Restart=always
+RestartSec=5
+# The script logs to infra/bot/scalp-launcher.log itself; the journal is a second sink.
+StandardOutput=append:%h/Claude-Code/investing-app/infra/bot/scalp-launcher.log
+StandardError=inherit
+
+[Install]
+WantedBy=default.target

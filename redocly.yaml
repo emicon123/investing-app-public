@@ -1,0 +1,17 @@
+# Redocly CLI config for the three OpenAPI contracts (task 189). Run from the repo root:
+#   npx --yes @redocly/cli@2.64.1 lint docs/openapi/openapi.yaml docs/openapi.yaml \
+#       apps/portfolio-b/docs/openapi.yaml apps/portfolio-c/docs/openapi.yaml
+# (or `npm run openapi:lint:all`). Exit code 0 = no errors; warnings do not fail the run.
+#
+# Ruleset: the built-in `recommended` (what redocly applies with no config at all), pinned here
+# explicitly so the gate does not change under us when a CLI upgrade alters its default.
+extends:
+  - recommended
+
+rules:
+  # Off: this is a single-user hobby app with no API consumers, so it has no
+  # license to declare - the warning can never be acted on and only adds noise to CI output.
+  info-license: off
+  # Off: the "Local development" server (http://localhost:8080/api) is deliberate documentation
+  # of how to reach a dev backend, not a placeholder left over from a template.
+  no-server-example.com: off

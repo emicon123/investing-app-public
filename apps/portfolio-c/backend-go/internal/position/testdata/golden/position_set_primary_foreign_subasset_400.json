@@ -1,0 +1,16 @@
+{
+  "status": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALIDATION_ERROR",
+        "field": "subassetId",
+        "message": "subasset 3 does not belong to asset 1"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

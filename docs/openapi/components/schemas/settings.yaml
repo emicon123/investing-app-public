@@ -1,0 +1,40 @@
+# --- Settings ---
+Setting:
+  type: object
+  properties:
+    key:
+      type: string
+    value:
+      type: string
+      description: Always a string regardless of underlying type.
+    updatedAt:
+      type: string
+      format: date-time
+
+UpdateSettingRequest:
+  type: object
+  required: [value]
+  properties:
+    value:
+      type: string
+
+SettingsListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/Setting"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+SettingSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/Setting"
+    meta:
+      $ref: "./common.yaml#/Meta"
+

@@ -1,0 +1,84 @@
+# --- Historia ---
+# Wire shape matches HistoriaEntryDto (backend/.../dto/historia/HistoriaEntryDto.java)
+# as mapped by HistoriaMapper (returnPct/profitPln computed, inflation fields enriched
+# by HistoriaService, null when inflation data is unavailable) — NOT the stale
+# zwrot/zysk names this file used before the Phase 3 ARCHITECT audit (2026-09-15).
+HistoriaEntry:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    snapshotDate:
+      type: string
+      format: date
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    totalDeposits:
+      type: number
+      format: double
+    portfolioValue:
+      type: number
+      format: double
+    xirr:
+      type: [number, "null"]
+      format: double
+    returnPct:
+      type: number
+      format: double
+      description: >-
+        Computed at response time = portfolioValue/totalDeposits - 1 (scale 8,
+        HALF_UP); 0 when totalDeposits is 0.
+      readOnly: true
+    profitPln:
+      type: number
+      format: double
+      description: Computed at response time = portfolioValue - totalDeposits
+      readOnly: true
+    positionValues:
+      type: [object, "null"]
+      additionalProperties:
+        type: number
+        format: double
+      description: >-
+        Per-asset value breakdown (ticker -> value_pln) at snapshot time.
+        Sums to portfolioValue. Null for snapshots taken before this was
+        captured (going forward only; not backfilled).
+    createdAt:
+      type: string
+      format: date-time
+    inflationAdjustedDeposits:
+      type: [number, "null"]
+      format: double
+      description: >-
+        Break-even line in PLN: every deposit made on or before snapshotDate inflated
+        by CPI from its own month to the snapshot's month (sum of depositᵢ x CPI factor).
+        portfolioValue above it = a real gain, below it = a real loss; with zero inflation
+        it equals totalDeposits. Null when inflation data is unavailable.
+      readOnly: true
+    realReturnPct:
+      type: [number, "null"]
+      format: double
+      description: >-
+        Inflation-adjusted total return = portfolioValue / inflationAdjustedDeposits - 1.
+        Null when inflation data is unavailable or nothing was deposited yet.
+      readOnly: true
+    annualizedInflationPct:
+      type: [number, "null"]
+      format: double
+      description: Annualized inflation since the portfolio baseline (MAIN 2022-08, RETIREMENT 2024-02). Null when inflation data is unavailable.
+      readOnly: true
+
+HistoriaPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/HistoriaEntry"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+

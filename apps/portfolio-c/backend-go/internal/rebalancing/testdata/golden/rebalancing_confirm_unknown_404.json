@@ -1,0 +1,15 @@
+{
+  "status": 404,
+  "body": {
+    "errors": [
+      {
+        "code": "NOT_FOUND",
+        "message": "Position not found: B1"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

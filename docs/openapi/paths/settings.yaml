@@ -1,0 +1,78 @@
+collection:
+  get:
+    tags: [settings]
+    summary: List all application settings
+    operationId: listSettings
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: All settings as a flat list. Values are always strings.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/settings.yaml#/SettingsListResponse"
+            example:
+              data:
+                - key: "retirement.monthly_contribution_pln"
+                  value: "2500"
+                  updatedAt: "2026-06-01T10:00:00Z"
+                - key: "rebalancing.macro_derisk_enabled"
+                  value: "true"
+                  updatedAt: "2026-06-30T10:00:00Z"
+                - key: "ike_annual_limit_pln"
+                  value: "23472"
+                  updatedAt: "2026-01-01T00:00:00Z"
+                - key: "ikze_annual_limit_pln"
+                  value: "9388.8"
+                  updatedAt: "2026-01-01T00:00:00Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440005"
+                timestamp: "2026-06-08T09:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+item:
+  put:
+    tags: [settings]
+    summary: Update a single setting
+    operationId: updateSetting
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+        example: retirement.monthly_contribution_pln
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/settings.yaml#/UpdateSettingRequest"
+          example:
+            value: "2500"
+    responses:
+      "200":
+        description: Updated setting.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/settings.yaml#/SettingSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

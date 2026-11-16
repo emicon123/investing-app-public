@@ -1,0 +1,74 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "id": "<masked>",
+      "key": "GA-1",
+      "name": "Gold (all)",
+      "exposure": "METALS",
+      "assetClass": "ETF",
+      "targetAllocationPct": 60,
+      "computed": {
+        "unitsTotal": 3,
+        "pricePln": 21.5,
+        "priceNative": 5,
+        "valuePln": 199.5,
+        "currentPct": 100,
+        "deviationPct": 0.66666667,
+        "profitPct": -0.734,
+        "avgBuyPricePln": 80.8271,
+        "avgBuyPriceNative": 18.797,
+        "equivalentUnits": 9.27906977
+      },
+      "subassets": [
+        {
+          "id": "<masked>",
+          "assetId": "<masked>",
+          "isPrimary": true,
+          "ticker": "GA-2",
+          "name": "Gold A EUR",
+          "exchange": "XTB",
+          "yahooTicker": "GA2.DE",
+          "priceCurrency": "EUR",
+          "unitsIkeTata": 0,
+          "unitsIkeMama": 3,
+          "unitsIkzeTata": 0,
+          "unitsIkzeMama": 0,
+          "unitsInne": 0,
+          "effectiveUnits": 3,
+          "pricePln": 21.5,
+          "priceNative": 5,
+          "valuePln": 64.5,
+          "sortOrder": 0
+        },
+        {
+          "id": "<masked>",
+          "assetId": "<masked>",
+          "isPrimary": false,
+          "ticker": "GA-1",
+          "name": "Gold A",
+          "exchange": "XTB",
+          "yahooTicker": "GA1.WA",
+          "priceCurrency": "PLN",
+          "unitsIkeTata": 10,
+          "unitsIkeMama": 0,
+          "unitsIkzeTata": 0,
+          "unitsIkzeMama": 1.5,
+          "unitsInne": 2,
+          "effectiveUnits": 13.5,
+          "pricePln": 10,
+          "priceNative": 10,
+          "valuePln": 135,
+          "groupName": "Złoto",
+          "sortOrder": 1
+        }
+      ],
+      "createdAt": "<masked>",
+      "updatedAt": "<masked>"
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

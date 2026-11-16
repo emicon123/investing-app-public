@@ -1,0 +1,230 @@
+collection:
+  get:
+    tags: [deposits]
+    summary: List deposits, optionally filtered by portfolio, accountType, exchange, and/or year
+    operationId: listDeposits
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: portfolio
+        in: query
+        schema:
+          $ref: "../components/schemas/enums.yaml#/Portfolio"
+      - name: accountType
+        in: query
+        schema:
+          $ref: "../components/schemas/enums.yaml#/AccountType"
+      - name: exchange
+        in: query
+        description: Filter by exchange. Optional; combinable with all other filters.
+        schema:
+          $ref: "../components/schemas/enums.yaml#/Exchange"
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 100
+    responses:
+      "200":
+        description: Paginated deposits list.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/deposits.yaml#/DepositsPagedResponse"
+            example:
+              data:
+                - id: 1
+                  depositDate: "2026-01-15"
+                  amount: 7000.0
+                  currency: "PLN"
+                  exchange: "XTB"
+                  accountType: "IKE"
+                  portfolio: "RETIREMENT"
+                  comment: "January IKE deposit"
+                  createdAt: "2026-01-15T10:00:00Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440002"
+                timestamp: "2026-06-08T09:00:00Z"
+              page:
+                number: 0
+                size: 20
+                total: 48
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  post:
+    tags: [deposits]
+    summary: Record a new deposit
+    operationId: createDeposit
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: "../components/parameters.yaml#/IdempotencyKey"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/deposits.yaml#/CreateDepositRequest"
+          example:
+            depositDate: "2026-06-01"
+            amount: 7000.0
+            currency: "PLN"
+            exchange: "XTB"
+            accountType: "IKE"
+            portfolio: "RETIREMENT"
+            comment: "June IKE deposit"
+    responses:
+      "201":
+        description: Deposit recorded.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, meta]
+              properties:
+                data:
+                  $ref: "../components/schemas/deposits.yaml#/Deposit"
+                meta:
+                  $ref: "../components/schemas/common.yaml#/Meta"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "409":
+        $ref: "../components/responses.yaml#/IdempotencyInProgress"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableOrKeyReused"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+xirr:
+  get:
+    tags: [deposits]
+    summary: Compute XIRR for a portfolio
+    operationId: getXirr
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: portfolio
+        in: query
+        required: true
+        schema:
+          $ref: "../components/schemas/enums.yaml#/Portfolio"
+    responses:
+      "200":
+        description: XIRR computation result. xirrPct is null if computation fails.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/deposits.yaml#/XirrResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+accountCapUsage:
+  get:
+    tags: [deposits]
+    summary: IKE/IKZE contribution cap usage for a given year
+    operationId: getAccountCapUsage
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: year
+        in: query
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        description: Cap usage per account type.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/deposits.yaml#/AccountCapUsageResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+accountCapAdjustment:
+  put:
+    tags: [deposits]
+    summary: Correct the remaining IKE/IKZE contribution limit for a year
+    operationId: upsertAccountCapAdjustment
+    security:
+      - bearerAuth: []
+    description: |
+      Upserts the manual correction for one `(accountType, year)` (ADR-058). The request
+      carries the remaining limit the user knows is correct; the backend solves for the
+      signed `account_cap_adjustment.adjustment_pln` that makes the computed `remainingPln`
+      equal it, so later deposits still move the figure by their own amount. Idempotent by
+      construction (keyed by `(accountType, year)`), so it takes no `Idempotency-Key`.
+      Returns 200 for both the first create and later updates, with the recomputed usage
+      item; `data.remainingPln` equals the typed value. Does not change the statutory
+      annual cap (`PUT /settings/{key}`).
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/deposits.yaml#/AccountCapAdjustmentRequest"
+          example:
+            accountType: IKE
+            year: 2026
+            remainingPln: 3000.00
+    responses:
+      "200":
+        description: Correction stored; the recomputed usage item for (accountType, year).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/deposits.yaml#/AccountCapUsageSingleResponse"
+            example:
+              data:
+                accountType: IKE
+                year: 2026
+                totalDepositedPln: 20472.00
+                annualCapPln: 23472.00
+                remainingPln: 3000.00
+                utilizationPct: 87.21
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440123"
+                timestamp: "2026-11-04T12:00:00Z"
+      "400":
+        description: >
+          A missing or invalid field (`VALIDATION_ERROR`), `accountType = REGULAR`, or `year`
+          outside 2021–2100.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"

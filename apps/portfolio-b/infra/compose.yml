@@ -1,0 +1,137 @@
+# docker-compose v2 — portfolio-b
+# Separate service names and ports to coexist with investing-app on the same host.
+# Run from project root:
+#   docker compose -f infra/compose.yml up
+
+name: portfolio-b
+
+services:
+
+  # ── Database: see infra/shared/compose.yml at repo root (ADR-083) ─────────────
+  # Postgres for this app now lives in the dedicated shared-infra stack (`db-shared`,
+  # database `portfolio-b`), shared with investing-app/portfolio-c. Not managed by this compose
+  # file — `docker compose up -d backend-go-portfolio-b` here no longer starts/stops a database.
+
+  # ── Flyway runner (ADR-098 Decision 2) ───────────────────────────────────────
+  # One-shot job that replaces Spring's embedded Flyway now that Java is retired: applies this
+  # app's db/migration/ (V1..V6, V8..V19; V7 absent from the repo, tombstoned DELETED in the
+  # live history by the task-134 repair of 2026-09-29) to database `portfolio-b` on db-shared,
+  # then exits.
+  # `backend-go-portfolio-b` waits for it via `depends_on: service_completed_successfully` (same-project
+  # only — Compose cannot gate across projects, hence one runner per app). Every `docker compose up
+  # -d` re-runs it (an idempotent no-op when up to date). Named `flyway-portfolio-b` (root: `flyway`,
+  # portfolio-c: `flyway-portfolio-c`) so DNS aliases on the shared `investing-shared` network cannot collide.
+  # - Image MUST equal testsupport.DefaultFlywayImage (packages/common/go/common-go/testsupport/
+  #   postgres.go) — one pinned tag, so tests == prod.
+  # - Reuses the existing DB_URL/DB_USERNAME/DB_PASSWORD (per-DB owner role portfolio_b_user); no new
+  #   secrets. DB_URL is already a jdbc:postgresql://db-shared:5432/portfolio_b URL, used verbatim.
+  # - Mounts ONLY this app's db/migration (Flyway scans `filesystem:` locations recursively).
+  # - Never `clean`; FLYWAY_CLEAN_DISABLED is belt-and-braces. mem_limit is for a short-lived JVM.
+  flyway-portfolio-b:
+    image: flyway/flyway:13.10.3
+    platform: linux/arm64
+    restart: "no"
+    command: migrate
+    environment:
+      FLYWAY_URL: ${DB_URL}
+      FLYWAY_USER: ${DB_USERNAME}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_CONNECT_RETRIES: "10"
+      FLYWAY_CLEAN_DISABLED: "true"
+    volumes:
+      - ../db/migration:/flyway/sql:ro
+    networks:
+      - investing-shared
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 384m
+
+  # ── Backend-Go (Go API — this app's only backend since Java was retired, ADR-094/098) ──
+  # Serves the entire /api surface. Named backend-go-portfolio-b (not `backend-go`) because it
+  # attaches to the shared external `investing-shared` network alongside root's own `backend-go`
+  # and portfolio-c's `backend-go-portfolio-c` — reusing the literal name `backend-go` across projects on that
+  # one shared network would collide, the same reason the runner is `flyway-portfolio-b`, not `flyway`.
+  # No `ports:` — reachable only from Nginx over `investing-shared`, never bound to the host.
+  backend-go-portfolio-b:
+    build:
+      context: ../../..
+      dockerfile: apps/portfolio-b/infra/backend-go/Dockerfile
+    platform: linux/arm64
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      # Migrations first (ADR-098): the schema must be current before the Go API starts.
+      flyway-portfolio-b:
+        condition: service_completed_successfully
+    environment:
+      TZ: Europe/Warsaw
+      PORT: "8092"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      ALLOWED_EMAIL_1: ${ALLOWED_EMAIL_1}
+      ALLOWED_EMAIL_2: ${ALLOWED_EMAIL_2}
+      HISTORIA_SCHEDULER_ENABLED: "true"
+      # Soft GC target below mem_limit: 64m (task 176, F4.3).
+      GOMEMLIMIT: "48MiB"
+    # SIGTERM -> ordered shutdown: 15s HTTP drain + 10s worker wait = 25s (ADR-110).
+    stop_grace_period: 30s
+    # Exec form: the distroless image has no shell/wget. `backend-go healthcheck` probes
+    # http://127.0.0.1:$PORT/api/health-go (which pings the DB) and exits 1 on a non-2xx.
+    healthcheck:
+      test: ["CMD", "/app/backend-go", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - portfolio-b-net
+      - investing-shared
+    mem_limit: 64m
+
+  # ── Frontend (React SPA via Nginx) ───────────────────────────────────────────
+  frontend-portfolio-b:
+    build:
+      context: ../../..
+      dockerfile: apps/portfolio-b/infra/nginx/Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    platform: linux/arm64
+    restart: unless-stopped
+    depends_on:
+      # service_started, not service_healthy: Nginx re-resolves the upstream per request
+      # (ADR-098) — see root infra/compose.yml's nginx depends_on comment for the full reason.
+      backend-go-portfolio-b:
+        condition: service_started
+    networks:
+      - portfolio-b-net
+      - investing-shared
+    mem_limit: 96m
+
+  # ── pgAdmin (dev profile only) ────────────────────────────────────────────────
+  pgadmin-portfolio-b:
+    image: dpage/pgadmin4:9.18
+    platform: linux/arm64
+    profiles: [dev]
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "127.0.0.1:5051:80"
+    networks:
+      - portfolio-b-net
+
+networks:
+  portfolio-b-net:
+    driver: bridge
+  # Shared network so the main investing-app Nginx can reach this frontend and backend
+  investing-shared:
+    external: true
+    name: investing-shared

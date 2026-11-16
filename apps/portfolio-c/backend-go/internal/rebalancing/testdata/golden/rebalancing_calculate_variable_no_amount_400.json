@@ -1,0 +1,16 @@
+{
+  "status": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALIDATION_ERROR",
+        "field": "depositAmountPln",
+        "message": "depositAmountPln is required for the VARIABLE portfolio — it has no stored default"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

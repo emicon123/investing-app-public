@@ -1,0 +1,450 @@
+prices:
+  get:
+    tags: [market-data]
+    summary: Get cached prices for tickers
+    operationId: getPrices
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: tickers
+        in: query
+        description: Comma-separated ticker list. Omit for all tracked tickers.
+        schema:
+          type: string
+        example: "CSPX.L,BTC-USD"
+      - name: forceRefresh
+        in: query
+        schema:
+          type: boolean
+          default: false
+    responses:
+      "200":
+        description: Price list (from cache or freshly fetched).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/market-data.yaml#/PricesListResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+pricesRefresh:
+  post:
+    tags: [market-data]
+    summary: Synchronous refresh of all tracked prices
+    operationId: refreshPrices
+    security:
+      - bearerAuth: []
+    description: |
+      Waits until all prices are refreshed before returning (up to 8 parallel
+      Yahoo Finance / Binance fetches). Used by the "Odswież ceny" button.
+    responses:
+      "200":
+        description: >
+          Refresh summary — NOT the standard `{data, meta}` list envelope. Callers
+          that need the refreshed prices themselves should follow up with
+          `GET /market-data/prices`.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/market-data.yaml#/PriceRefreshResult"
+            example:
+              total: 24
+              succeeded: 23
+              failures:
+                - ticker: "XYZ.WA"
+                  reason: "Yahoo Finance returned no chart data"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+fxRatesRefresh:
+  post:
+    tags: [market-data]
+    summary: Force-refresh all FX rates from Yahoo Finance
+    operationId: refreshFxRates
+    security:
+      - bearerAuth: []
+    description: |
+      Force-refreshes every tracked PLN FX rate (EUR, USD, CHF, GBP) from Yahoo
+      Finance, bypassing the cache TTL. Returns 204 No Content with no body on
+      success — callers that need the refreshed rates should follow up with
+      `GET /market-data/fx-rates`.
+    responses:
+      "204":
+        description: FX rates refreshed.
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+fxRates:
+  get:
+    tags: [market-data]
+    summary: Get PLN FX rates
+    operationId: getFxRates
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: forceRefresh
+        in: query
+        schema:
+          type: boolean
+          default: false
+    description: |
+      Returns PLN FX rates for EUR, USD, CHF, GBP plus synthetic PLN=1.0.
+      On failure, returns stale cache rather than erroring.
+    responses:
+      "200":
+        description: FX rates list.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/market-data.yaml#/FxRatesListResponse"
+            example:
+              data:
+                - fromCurrency: "EUR"
+                  rateToPln: 4.28
+                  source: "yahoo"
+                  fetchedAt: "2026-06-08T09:00:00Z"
+                - fromCurrency: "USD"
+                  rateToPln: 3.89
+                  source: "yahoo"
+                  fetchedAt: "2026-06-08T09:00:00Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440004"
+                timestamp: "2026-06-08T09:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+macroState:
+  get:
+    tags: [market-data]
+    summary: Current macro liquidity de-risk state
+    operationId: getMacroState
+    security:
+      - bearerAuth: []
+      - serviceTokenAuth: []
+    description: |
+      Returns the persisted macro liquidity regime (ADR-044; supersedes ADR-042/043's
+      binary cut+redistribute gate) that drives the MAIN rebalancing de-risk gate.
+      Read-only and cheap — it reads the latest `macro_state` row written by the
+      scheduled MacroDataService; it does NOT call FRED/ECB/BoE/BoJ/chinadata.live.
+
+      `blendFactor ∈ [0,1]` is a continuous macro score (0.7 × zscore(net-liq YoY
+      accel) + 0.3 × zscore(Global-M2 YoY accel), 3-month smoothed, clipped;
+      0 = full risk-off, 1 = full risk-on — orientation flipped by ADR-071, was the
+      reverse under the original ADR-044) that linearly interpolates every MAIN
+      position's `target_allocation_pct` between its risk-on value and its
+      `target_allocation_pct_risk_off` value during planning —
+      `effectiveTarget = riskOff × (1 − blendFactor) + riskOn × blendFactor`. `zone` is
+      a display-only label derived from `blendFactor` (RISK_OFF/MID_OFF/NEUTRAL/MID_ON/
+      RISK_ON — thresholds unchanged by ADR-071, only which label sits at which end).
+      The legacy `riskOff` boolean is retained as telemetry only and no
+      longer directly gates the override.
+    responses:
+      "200":
+        description: Current macro state.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/macro.yaml#/MacroStateResponse"
+            example:
+              data:
+                asOfDate: "2026-06-24"
+                blendFactor: 0.35
+                zone: "MID_OFF"
+                compositeZ: -0.42
+                smoothedZ: -0.3
+                riskOff: true
+                deriskEnabled: true
+                netLiqLatestUsdMln: 5921000.0
+                netLiqYoy: -0.031
+                netLiqYoyAccel: -0.018
+                netLiqRiskOff: true
+                globalM2LatestUsdMln: 108400000.0
+                globalM2Yoy: 0.021
+                globalM2YoyAccel: -0.004
+                globalM2RiskOff: true
+                globalM2Stale: false
+                components:
+                  - seriesCode: "NETLIQ"
+                    source: "DERIVED"
+                    latestObservationDate: "2026-06-24"
+                    latestValue: 5921000.0
+                    stale: false
+                  - seriesCode: "M2_CN"
+                    source: "CHINADATA"
+                    latestObservationDate: "2026-05-01"
+                    latestValue: 353670000.0
+                    stale: false
+                computedAt: "2026-06-27T18:05:00Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440014"
+                timestamp: "2026-06-27T18:05:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+macroStateHistory:
+  get:
+    tags: [market-data]
+    summary: Full blend-factor history (all persisted macro_state rows)
+    operationId: getMacroStateHistory
+    security:
+      - bearerAuth: []
+    description: |
+      Returns every persisted `macro_state` row, ordered by `asOfDate` ascending — the full
+      accumulated history, not just the latest (contrast with GET /market-data/macro-state).
+      Read-only and cheap, same guarantee as the single-row endpoint: reads `macro_state` via
+      `MacroStateRepository.findAllByOrderByAsOfDateAsc()`; never calls FRED/ECB/BoE/BoJ/
+      chinadata.live/TradingEconomics/PBC/YCharts.
+
+      Backs the Settings page's macro blend-factor history chart (ADR-069). The frontend merges
+      this live series with a frozen pre-live backtest series
+      (frontend-web/src/lib/macroBlendBacktest.ts, recomputed under the current blend formula —
+      see ADR-069 for why the CSV's own stale `blend` column isn't used directly), rendered
+      dashed before the 2026-07-01 live-cutover date and solid from this endpoint's data onward.
+
+      Unpaginated: `macro_state` accumulates at most a handful of rows per week (weekly
+      net-liquidity + monthly Global-M2 triggers) — same "personal-app scale" reasoning already
+      applied to GET /market-data/prices and GET /market-data/fx-rates.
+    responses:
+      "200":
+        description: Full blend-factor history, oldest first.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/macro.yaml#/MacroStateHistoryListResponse"
+            example:
+              data:
+                - asOfDate: "2026-07-01"
+                  blendFactor: 0.42
+                  zone: "NEUTRAL"
+                - asOfDate: "2026-07-04"
+                  blendFactor: 0.38
+                  zone: "MID_OFF"
+                - asOfDate: "2026-07-29"
+                  blendFactor: 0.31
+                  zone: "MID_OFF"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440012"
+                timestamp: "2026-07-29T18:05:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+macroStateRefresh:
+  post:
+    tags: [market-data]
+    summary: Force a macro-state recompute (fetch FRED/ECB/BoE/BoJ/chinadata.live + recompute blend factor)
+    operationId: refreshMacroState
+    security:
+      - bearerAuth: []
+    description: |
+      Triggers the same work the scheduled job does: fetch the FRED/ECB/BoE/BoJ/
+      chinadata.live series (FRED is now key-authenticated — ADR-046 §6 — the other four
+      remain keyless) plus the ADR-068 China-M2 tip scrapes (TradingEconomics/PBC/YCharts),
+      upsert `macro_observations`, recompute derived series + YoY/acceleration +
+      composite/smoothed z-score + `blendFactor` (ADR-044), and upsert today's
+      `macro_state`. Any manually-pasted China/Japan observation is used as-is if it is
+      the freshest one on record for that series (i.e. the manual fallback only wins
+      when it is newer than what the automated client last fetched). Returns the
+      freshly computed state.
+    responses:
+      "200":
+        description: Recomputed macro state.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/macro.yaml#/MacroStateResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+macroM2Manual:
+  post:
+    tags: [market-data]
+    summary: Upsert a manual Global-M2 component (fallback for China / Japan)
+    operationId: upsertManualM2
+    security:
+      - bearerAuth: []
+    description: |
+      Fallback seam (ADR-042; automated as of ADR-046) for the two Global-M2 components
+      that don't have a first-party keyless API — China (normally chinadata.live) and
+      Japan (normally the Bank of Japan Time-Series Data Search API). Use this only if
+      the corresponding automated client is broken. Upserts one `macro_observations` row
+      (source=MANUAL) keyed by (seriesCode, observationDate). Does not itself recompute
+      the state — call /market-data/macro-state/refresh after pasting, or wait for the
+      next scheduled run.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/macro.yaml#/ManualM2ObservationRequest"
+          example:
+            seriesCode: "M2_CN"
+            observationDate: "2026-05-31"
+            value: 301200000.0
+    responses:
+      "200":
+        description: Manual observation upserted.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/macro.yaml#/MacroStateResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+benchmarkHistory:
+  get:
+    tags: [market-data]
+    summary: Weekly closes of a reference benchmark (BTC-USD, ^NDX, GC=F, ^HSI) for the blend-chart overlay
+    operationId: getBenchmarkHistory
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: symbol
+        in: query
+        required: true
+        description: Only the four whitelisted symbols are accepted — anything else is a 400.
+        schema:
+          type: string
+          enum: ["BTC-USD", "^NDX", "GC=F", "^HSI"]
+        example: "BTC-USD"
+    description: |
+      Returns weekly closes (Yahoo v8 chart API, interval 1wk, explicit period1/period2 —
+      never the range=max shorthand, which silently degrades a long-history request to
+      coarser, irregularly-spaced candles) windowed to the blend chart's 2011-07 start
+      (the ADR-069 backtest window). Server-cached for 12h — this endpoint is a
+      read-only overlay for the Settings blend-factor history chart (ADR-070), not a
+      live quote feed. The frontend plots the raw close on a dedicated right-hand
+      log-scale axis (domain padded ±5% multiplicatively from the visible window's
+      min/max), carrying the latest close forward for every blend-history row so the
+      overlay line renders solid instead of breaking at gaps.
+    responses:
+      "200":
+        description: Daily benchmark closes, oldest first.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/market-data.yaml#/BenchmarkHistoryListResponse"
+            example:
+              data:
+                - symbol: "BTC-USD"
+                  date: "2011-07-01"
+                  close: 15.4
+                - symbol: "BTC-USD"
+                  date: "2011-07-02"
+                  close: 15.9
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440013"
+                timestamp: "2026-07-29T18:05:00Z"
+      "400":
+        description: Symbol is not on the whitelist — same IllegalArgumentException -> VALIDATION_ERROR convention as GET /market-data/linear-regression's "No data found for ticker".
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+linearRegression:
+  get:
+    tags: [market-data]
+    summary: Log-linear regression chart data for a ticker
+    operationId: getLinearRegression
+    security:
+      - bearerAuth: []
+    description: |
+      Fits a log-linear OLS regression of ln(close) over the FULL available
+      history (1-indexed, oldest first); fromDate/toDate only filter the
+      returned rows afterward (daily additionally bounds the fetch to a 5-year
+      window — see LinearRegressionService.fetchOHLC). `since` appends that many
+      future extrapolated rows (trendline + ±1–4 SD bands, null actuals).
+      Fixed 2026-09-15: `since` previously documented as "weeks of history
+      (overrides fromDate)" — it is a future-extrapolation count.
+    parameters:
+      - name: ticker
+        in: query
+        required: true
+        schema:
+          type: string
+        example: "BTC-USD"
+      - name: interval
+        in: query
+        schema:
+          type: string
+          default: "wk"
+      - name: fromDate
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: toDate
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: since
+        in: query
+        description: Number of future periods to extrapolate beyond the last data point (0 = none).
+        schema:
+          type: integer
+          default: 0
+          example: 30
+    responses:
+      "200":
+        description: Regression fit, filtered history rows, and extrapolated rows.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/market-data.yaml#/RegressionResponse"
+      "400":
+        description: >
+          Bad interval (not d/wk/mo), Yahoo Finance returned no OHLC data, or the
+          ticker has no price history — IllegalArgumentException ->
+          VALIDATION_ERROR, same convention as GET /market-data/trade-chart.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

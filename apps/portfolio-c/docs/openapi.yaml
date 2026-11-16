@@ -1,0 +1,2589 @@
+# OpenAPI contract for portfolio-c. Originally snapshotted from the retired Java backend's
+# springdoc endpoint (2026-09-17); since the Java retirement (ADR-098) this single file is the
+# hand-maintained source of truth (there is no bundling step). Keep it `redocly lint`-clean
+# (root redocly.yaml; `npm run openapi:lint:all` from the repo root) and regenerate the Go server
+# with `go generate ./openapi/` in backend-go/ after every edit.
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://127.0.0.1:8082/api
+  description: Generated server url
+tags:
+- name: auth
+  description: Token exchange
+security:
+- bearerAuth: []
+paths:
+  /settings/{key}:
+    put:
+      tags:
+      - settings-controller
+      operationId: updateSetting
+      summary: Update one setting
+      parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSettingRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseSettingDto'
+  /positions/{id}:
+    get:
+      tags:
+      - positions-controller
+      operationId: getPosition
+      summary: Get one subasset position
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseAssetDto'
+    put:
+      tags:
+      - positions-controller
+      operationId: updatePosition
+      summary: Update one subasset position
+      description: >
+        Edits one subasset row's own fields (every field optional). Optional assetId
+        re-homes a NON-PRIMARY subasset under another asset (task 156 follow-up): absent
+        or equal to the current asset = ignored; 409 when the subasset is primary (set
+        another primary first, or delete and re-create it); 404 when the target asset
+        does not exist; 400 (field assetId) when the target asset belongs to a
+        different portfolio; no units, cost basis, targets or tickers move, and the response
+        is the asset the subasset now belongs to.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePositionRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseAssetDto'
+    delete:
+      tags:
+      - positions-controller
+      operationId: deletePosition
+      summary: Soft-delete one subasset position
+      description: >
+        Soft-deletes one subasset (task 173, sets deleted_at; history is never removed).
+        Primary with live siblings is 409; the last live subasset soft-deletes its
+        asset too. 404 when unknown or already deleted. Re-creating the ticker via
+        POST /positions restores the row.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '204':
+          description: No Content
+  /account-cash/{portfolio}:
+    get:
+      tags:
+      - account-cash-controller
+      operationId: get
+      summary: Get account cash
+      parameters:
+      - name: portfolio
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountCashDto'
+    put:
+      tags:
+      - account-cash-controller
+      operationId: update
+      summary: Set account cash
+      parameters:
+      - name: portfolio
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCashUpdateRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountCashDto'
+  /purchases/confirm:
+    post:
+      tags:
+      - rebalancing-controller
+      operationId: confirm
+      summary: Confirm a purchase plan
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: >-
+          Client-generated key (one random UUID per user intent) that makes this
+          money-moving request safe to retry. Same key + same request after a 2xx
+          replays the stored response (header Idempotent-Replayed: true); same key
+          while in progress or after a 5xx -> 409 IDEMPOTENCY_IN_PROGRESS; same key
+          with a different request -> 422 IDEMPOTENCY_KEY_REUSED; malformed key ->
+          400 VALIDATION_ERROR. Omitted -> no deduplication. Root docs/openapi
+          components/parameters.yaml#/IdempotencyKey and ADR-111 are the full contract.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmPurchasesRequest'
+        required: true
+      responses:
+        '422':
+          description: Idempotency-Key already used for a different request (IDEMPOTENCY_KEY_REUSED, ADR-111)
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '204':
+          description: No Content
+  /purchases/calculate:
+    post:
+      tags:
+      - rebalancing-controller
+      operationId: calculate
+      summary: Calculate a purchase plan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalculateRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseRebalancingResultDto'
+  /positions:
+    get:
+      tags:
+      - positions-controller
+      operationId: listPositions
+      summary: List positions grouped by asset
+      parameters:
+      - name: portfolio
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/Pageable'
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PagedResponseAssetDto'
+    post:
+      tags:
+      - positions-controller
+      operationId: createPosition
+      summary: Create a subasset position
+      description: >
+        Task 173: if the ticker matches a soft-deleted subasset (or newAsset's key a
+        soft-deleted asset), that row is restored instead of inserted. It keeps the same
+        id, units, cost basis and history; required fields are overwritten, optional ones
+        are kept unless sent. 409 only for a live duplicate.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePositionRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '201':
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseAssetDto'
+  /assets/{id}/primary:
+    post:
+      tags:
+      - positions-controller
+      operationId: setAssetPrimary
+      summary: Set the primary subasset of an asset
+      description: >
+        Flips which subasset of an asset is primary (task 156 — replaces
+        POST /positions/{id}/promote). Pure boolean flip in one transaction: no units
+        move, no cost basis migrates (per-subasset cost data stays on the row that holds
+        it), no sibling repointing (membership is the asset_id FK, not a string). The
+        per-portfolio Σ targets == 100 guard promote carried is kept: no target moves on
+        a flip, so it only answers 400 (before any write) when the stored portfolio
+        already violates the invariant. 404 unknown asset; 400 when subassetId does not
+        belong to the asset.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetAssetPrimaryRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseAssetDto'
+  /assets/{id}:
+    put:
+      tags:
+      - positions-controller
+      operationId: updateAsset
+      summary: Update asset-level fields and targets
+      description: >
+        Edits asset-level fields — the only writer of targets (task 156). Every field
+        is optional (omitted = unchanged). Like the old PUT /positions/{id} target
+        edit there is no Σ == 100 check here: moving weight between two assets is two
+        edits, so the portfolio is briefly off 100 by design (the UI's "Σ Cel"
+        indicator exists for this).
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssetRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseAssetDto'
+    delete:
+      tags:
+      - positions-controller
+      operationId: deleteAsset
+      summary: Soft-delete an asset and its subassets
+      description: >
+        Soft-deletes a whole asset and all its live subassets in one statement
+        (task 173, sets deleted_at). History rows (position_transfers, purchase_lots,
+        historia) are untouched and never block the delete. 404 when unknown or
+        already deleted.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '204':
+          description: No Content
+  /position-transfers:
+    post:
+      tags:
+      - position-transfer-controller
+      operationId: execute
+      summary: Execute a position transfer (sell and buy legs)
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: >-
+          Client-generated key (one random UUID per user intent) that makes this
+          money-moving request safe to retry. Same key + same request after a 2xx
+          replays the stored response (header Idempotent-Replayed: true); same key
+          while in progress or after a 5xx -> 409 IDEMPOTENCY_IN_PROGRESS; same key
+          with a different request -> 422 IDEMPOTENCY_KEY_REUSED; malformed key ->
+          400 VALIDATION_ERROR. Omitted -> no deduplication. Root docs/openapi
+          components/parameters.yaml#/IdempotencyKey and ADR-111 are the full contract.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionTransferRequest'
+        required: true
+      responses:
+        '422':
+          description: Idempotency-Key already used for a different request (IDEMPOTENCY_KEY_REUSED, ADR-111)
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PositionTransferResponse'
+  /market-data/prices/refresh:
+    post:
+      tags:
+      - market-data-controller
+      operationId: refreshPrices
+      summary: Force-refresh market prices
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PriceRefreshResult'
+  /market-data/fx-rates/refresh:
+    post:
+      tags:
+      - market-data-controller
+      summary: Force-refresh PLN FX rates
+      operationId: refreshFxRates
+      description: Force-refreshes every tracked PLN FX rate, bypassing the cache TTL. Always answers 204 with no body (failures are logged server-side, never surfaced); follow up with `GET /market-data/fx-rates` for the refreshed rates.
+      responses:
+        '204':
+          description: No Content - FX rates refresh attempted.
+        '401':
+          description: Unauthorized - missing or invalid bearer JWT
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /inflation/sync:
+    post:
+      tags:
+      - inflation-controller
+      operationId: syncFromGus
+      summary: Sync inflation data from GUS
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseMapStringObject'
+  /deposits:
+    get:
+      tags:
+      - deposits-controller
+      operationId: listDeposits
+      summary: List deposits
+      parameters:
+      - name: portfolio
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/Pageable'
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PagedResponseDepositDto'
+    post:
+      tags:
+      - deposits-controller
+      operationId: createDeposit
+      summary: Record a deposit
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        description: >-
+          Client-generated key (one random UUID per user intent) that makes this
+          money-moving request safe to retry. Same key + same request after a 2xx
+          replays the stored response (header Idempotent-Replayed: true); same key
+          while in progress or after a 5xx -> 409 IDEMPOTENCY_IN_PROGRESS; same key
+          with a different request -> 422 IDEMPOTENCY_KEY_REUSED; malformed key ->
+          400 VALIDATION_ERROR. Omitted -> no deduplication. Root docs/openapi
+          components/parameters.yaml#/IdempotencyKey and ADR-111 are the full contract.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDepositRequest'
+        required: true
+      responses:
+        '422':
+          description: Idempotency-Key already used for a different request (IDEMPOTENCY_KEY_REUSED, ADR-111)
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '201':
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseDepositDto'
+  /auth/token:
+    post:
+      tags:
+      - auth
+      summary: Exchange a Google ID token for a long-lived backend JWT
+      operationId: exchangeToken
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenExchangeRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TokenExchangeResponse'
+  /admin/history/backfill-position-values:
+    post:
+      tags:
+      - admin-controller
+      operationId: backfill
+      summary: Backfill historical position values
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties: {}
+  /account-cash/{portfolio}/deduct:
+    post:
+      tags:
+      - account-cash-controller
+      operationId: deduct
+      summary: Deduct from account cash
+      parameters:
+      - name: portfolio
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCashUpdateRequest'
+        required: true
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountCashDto'
+  /settings:
+    get:
+      tags:
+      - settings-controller
+      operationId: listSettings
+      summary: List settings
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ListResponseSettingDto'
+  /purchases/history:
+    get:
+      tags:
+      - rebalancing-controller
+      operationId: history
+      summary: List purchase history
+      parameters:
+      - name: portfolio
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponsePurchaseHistoryDataDto'
+  /market-data/prices:
+    get:
+      tags:
+      - market-data-controller
+      operationId: getPrices
+      summary: Get market prices
+      parameters:
+      - name: tickers
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 500
+          minLength: 0
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ListResponsePriceEntry'
+  /market-data/fx-rates:
+    get:
+      tags:
+      - market-data-controller
+      operationId: getFxRates
+      summary: Get PLN FX rates
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ListResponseFxRateEntry'
+  /history:
+    get:
+      tags:
+      - historia-controller
+      operationId: listHistoria
+      summary: Get portfolio history
+      parameters:
+      - name: portfolio
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PagedResponseHistoriaEntryDto'
+  /deposits/xirr:
+    get:
+      tags:
+      - deposits-controller
+      operationId: computeXirr
+      summary: Compute deposits XIRR
+      parameters:
+      - name: portfolio
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+      responses:
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SingleResponseXirrData'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+        field:
+          type: string
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      properties:
+        requestId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+    UpdateSettingRequest:
+      type: object
+      properties:
+        value:
+          type: string
+          maxLength: 1000
+          minLength: 0
+      required:
+      - value
+    SettingDto:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+    SingleResponseSettingDto:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/SettingDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    UpdatePositionRequest:
+      type: object
+      description: >
+        Subasset-owned fields only. Targets live on the parent asset (PUT /assets/{id});
+        a subasset row has no target.
+      properties:
+        units:
+          type: number
+          format: double
+          minimum: 0.0
+        totalSpentPln:
+          type: number
+          format: double
+          description: >
+            Explicit correction of this row's cost slot in PLN - the only way a manual edit
+            changes cost (a units edit never does). Only the SUM over the asset's subassets is
+            meaningful (the head row carries the group's go-live baseline; a sale re-scales every
+            row that carries cost). The reviewed way to set a baseline. Absent = unchanged.
+        avgBuyPrice:
+          type: number
+          format: double
+          deprecated: true
+          description: >
+            DEPRECATED. Stale native-currency go-live average: still accepted and stored, but
+            nothing reads it and no trade writes it. The entry price is
+            `computed.avgBuyPricePln` / `computed.avgBuyPriceNative`, derived from the recorded costs.
+            Absent = unchanged.
+        name:
+          type: string
+        groupName:
+          type: string
+        assetClass:
+          type: string
+          enum:
+          - ETF
+          - METALS
+          - CRYPTO
+          - STOCK
+          - CURRENCY
+        yahooTicker:
+          type: string
+        sortOrder:
+          type: integer
+          format: int32
+        assetId:
+          type: integer
+          format: int64
+          description: >
+            Re-home this subasset under another asset (non-primary only; same portfolio; ignored when
+            equal to the current asset).
+    UpdateAssetRequest:
+      type: object
+      description: >
+        Asset-level fields (task 156) — the only writer of targets. Absent key = leave
+        unchanged; targetAllocationPct / targetAllocationPctRiskOff explicitly set to
+        null = CLEAR the target (NULL = no target); 0 = an explicit zero target (ADR-053,
+        distinct from NULL); each set value must be within 0..100.
+      properties:
+        targetAllocationPct:
+          type: [number, "null"]
+          format: double
+          maximum: 100.0
+          minimum: 0.0
+        targetAllocationPctRiskOff:
+          type: [number, "null"]
+          format: double
+          maximum: 100.0
+          minimum: 0.0
+        name:
+          type: string
+    NewAssetRequest:
+      type: object
+      description: >
+        Inline asset payload for POST /positions without assetId (task 156): creates a
+        new asset (targets live here, never on the subasset row) with this subasset as
+        its first — trivially primary — member.
+      properties:
+        name:
+          type: string
+        exposure:
+          type: string
+          enum:
+          - CRYPTO
+          - METALS
+          - STOCKS
+          - COMMODITIES
+          - CURRENCY
+        assetClass:
+          type: string
+          enum:
+          - ETF
+          - METALS
+          - CRYPTO
+          - STOCK
+          - CURRENCY
+        targetAllocationPct:
+          type: number
+          format: double
+          maximum: 100.0
+          minimum: 0.0
+        targetAllocationPctRiskOff:
+          type: number
+          format: double
+          maximum: 100.0
+          minimum: 0.0
+      required:
+      - assetClass
+      - exposure
+      - name
+    SetAssetPrimaryRequest:
+      type: object
+      properties:
+        subassetId:
+          type: integer
+          format: int64
+      required:
+      - subassetId
+    ComputedPositionFields:
+      type: object
+      description: >
+        Group-level computed fields, resolved at query time from cached prices; never stored.
+        `valuePln` = sum over the asset's priced subassets; `unitsTotal` / `pricePln` /
+        `priceNative` describe the primary subasset. `profitPct`, `avgBuyPricePln`,
+        `avgBuyPriceNative`, `equivalentUnits` and `costlessSubassets` are the asset-level cost
+        group (task 161): they read the SUM of the recorded costs (`totalSpentPln` > 0) over all
+        subassets of the asset - never one row's cost and never the stored `avgBuyPrice`. A null
+        field is omitted from the response; all are omitted when no cost is recorded.
+      properties:
+        unitsTotal:
+          type: number
+          format: double
+        pricePln:
+          type: number
+          format: double
+        priceNative:
+          type: number
+          format: double
+        valuePln:
+          type: number
+          format: double
+        currentPct:
+          type: number
+          format: double
+        deviationPct:
+          type: number
+          format: double
+        profitPct:
+          type: number
+          format: double
+          description: >
+            Asset-level profit as a fraction (0.1 = +10 %): `sum(value) / sum(cost) - 1`, where
+            sum(cost) = sum of `totalSpentPln` over the asset's subassets whose cost is > 0 and
+            sum(value) = sum of `effectiveUnits x pricePln` over EVERY priced subasset, including
+            those with no recorded cost (the go-live cost of a group sits on the head row). A
+            subasset with a recorded cost but no price contributes neither. Omitted when
+            sum(cost) <= 0 - every portfolio-b asset until its reviewed baselines exist - or when the
+            primary is unpriced. Independent of which subasset is primary.
+        avgBuyPricePln:
+          type: number
+          format: double
+          description: >
+            The asset's ENTRY PRICE in PLN per 1 unit of the PRIMARY subasset:
+            `pricePln / (1 + profitPct)` = `sum(cost) / (sum(value) / pricePln)`, so
+            `avgBuyPricePln x equivalentUnits = sum(cost)` and
+            `pricePln / avgBuyPricePln - 1 = profitPct`. Non-primary holdings are converted at
+            today's prices (no history). Derived from the recorded costs, not from the stored
+            `avgBuyPrice`. Omitted whenever `profitPct` is omitted or is -1. Changing the primary
+            re-expresses the same cost in the new primary's terms. Not stored.
+        avgBuyPriceNative:
+          type: number
+          format: double
+          description: >
+            The entry price in the PRIMARY subasset's own `priceCurrency`: `avgBuyPricePln / fx`
+            with fx the CURRENT PLN rate of that currency (the rate `priceNative = pricePln / fx`
+            uses) = `priceNative / (1 + profitPct)`. The PLN cost is fixed, so it moves with the
+            current exchange rate by design. Equals `avgBuyPricePln` when `priceCurrency` is PLN.
+            Omitted whenever `avgBuyPricePln` is omitted or the FX rate is unavailable. Not
+            stored; never derived from the stored `avgBuyPrice`.
+        equivalentUnits:
+          type: number
+          format: double
+          description: >
+            Primary-equivalent units `valuePln / pricePln`: what all the asset's holdings are worth
+            today in units of the primary; the quantity the entry price averages the cost over
+            (`avgBuyPricePln x equivalentUnits = sum(cost)`). Present whenever the primary is
+            priced, independent of whether any cost is recorded.
+        costlessSubassets:
+          type: array
+          items:
+            type: string
+          description: >
+            Tickers (`SubassetDto.ticker`) of the asset's priced subassets that hold units but
+            have no recorded cost (`totalSpentPln` null or <= 0), listed only when an entry price
+            is computed (sum(cost) > 0). Their baseline is assumed to sit inside a sibling's
+            group-level cost - the known limitation of the entry price (a subasset bought
+            without its cost being entered inflates `profitPct` and lowers the entry price).
+            Omitted when there are none.
+    AssetDto:
+      type: object
+      description: >
+        One logical asset (task 156): the group root carrying targets, exposure and
+        asset class, with group-level computed fields (valuePln = Σ subassets,
+        deviationPct on the asset) and the member subassets, primary first.
+      properties:
+        id:
+          type: integer
+          format: int64
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        key:
+          type: string
+          description: >
+            Stable per-portfolio identity, immutable. A lowercase logical slug for a
+            multi-subasset asset (an asset is the abstraction, never named after one
+            fund); the holding's own ticker for a single-subasset asset (every live
+            portfolio-c asset today). Never join on it: subassets reference their asset by
+            assetId.
+        name:
+          type: string
+        exposure:
+          type: string
+          enum:
+          - CRYPTO
+          - METALS
+          - STOCKS
+          - COMMODITIES
+          - CURRENCY
+        assetClass:
+          type: string
+          enum:
+          - ETF
+          - METALS
+          - CRYPTO
+          - STOCK
+          - CURRENCY
+        targetAllocationPct:
+          type: number
+          format: double
+        targetAllocationPctRiskOff:
+          type: number
+          format: double
+          description: Always null in this app (no macro gate); present for cross-app uniformity.
+        computed:
+          $ref: '#/components/schemas/ComputedPositionFields'
+        subassets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubassetDto'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SingleResponseAssetDto:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AssetDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    SubassetDto:
+      type: object
+      description: One concrete holding within an asset (one positions row, task 156).
+      properties:
+        id:
+          type: integer
+          format: int64
+        assetId:
+          type: integer
+          format: int64
+        isPrimary:
+          type: boolean
+          description: Exactly one subasset per asset is primary = default buy destination.
+        ticker:
+          type: string
+        name:
+          type: string
+        exchange:
+          type: string
+          enum:
+          - XTB
+          - BINANCE
+          - OTHER
+        yahooTicker:
+          type: string
+        priceCurrency:
+          type: string
+          enum:
+          - PLN
+          - EUR
+          - USD
+          - CHF
+          - GBP
+        units:
+          type: number
+          format: double
+        effectiveUnits:
+          type: number
+          format: double
+        pricePln:
+          type: number
+          format: double
+        priceNative:
+          type: number
+          format: double
+        valuePln:
+          type: number
+          format: double
+        groupName:
+          type: string
+        sortOrder:
+          type: integer
+          format: int32
+    AccountCashUpdateRequest:
+      type: object
+      properties:
+        balancePln:
+          type: number
+          format: double
+          minimum: 0.0
+      required:
+      - balancePln
+    AccountCashDto:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        balancePln:
+          type: number
+          format: double
+        updatedAt:
+          type: string
+          format: date-time
+        updateReason:
+          type: string
+    ConfirmPurchaseItemDto:
+      type: object
+      properties:
+        ticker:
+          type: string
+          minLength: 1
+        units:
+          type: number
+          format: double
+          minimum: 0.0
+      required:
+      - ticker
+    ConfirmPurchasesRequest:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        depositAmountPln:
+          type: number
+          format: double
+          minimum: 0
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfirmPurchaseItemDto'
+          minItems: 1
+      required:
+      - depositAmountPln
+      - items
+      - portfolio
+    CalculateRequest:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        depositAmountPln:
+          type: number
+          format: double
+          minimum: 0
+      required:
+      - portfolio
+    AccountAllocDto:
+      type: object
+      properties:
+        accountType:
+          type: string
+          enum:
+          - IKE_TATA
+          - IKE_MAMA
+          - IKZE_TATA
+          - IKZE_MAMA
+          - INNE
+        allocPln:
+          type: number
+          format: double
+        unitsToBuy:
+          type: number
+          format: double
+    BuyListItemDto:
+      type: object
+      properties:
+        ticker:
+          type: string
+        name:
+          type: string
+        exchange:
+          type: string
+          enum:
+          - XTB
+          - BINANCE
+          - OTHER
+        purchaseCurrency:
+          type: string
+          enum:
+          - PLN
+          - EUR
+          - USD
+          - CHF
+          - GBP
+        allocatedPln:
+          type: number
+          format: double
+        allocatedNative:
+          type: number
+          format: double
+        unitsToBuy:
+          type: number
+          format: double
+        currentPct:
+          type: number
+          format: double
+        targetPct:
+          type: number
+          format: double
+        deviationPct:
+          type: number
+          format: double
+        regressionWeight:
+          type: number
+          format: double
+        accountAllocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountAllocDto'
+        availableTickers:
+          type: array
+          items:
+            type: string
+    DonutSliceDto:
+      type: object
+      properties:
+        ticker:
+          type: string
+        name:
+          type: string
+        currentPct:
+          type: number
+          format: double
+        targetPct:
+          type: number
+          format: double
+        valuePln:
+          type: number
+          format: double
+        deviationPct:
+          type: number
+          format: double
+        status:
+          type: string
+    RebalancingResultDto:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        deployableCashPln:
+          type: number
+          format: double
+        totalPortfolioValuePln:
+          type: number
+          format: double
+        pricesRefreshedAt:
+          type: string
+          format: date-time
+        buyList:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuyListItemDto'
+        donutData:
+          type: array
+          items:
+            $ref: '#/components/schemas/DonutSliceDto'
+    SingleResponseRebalancingResultDto:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RebalancingResultDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    CreatePositionRequest:
+      type: object
+      description: >
+        Creates one subasset holding (task 156): either under an existing asset
+        (assetId set — isPrimary defaults to false) or under a brand-new asset
+        (assetId omitted + inline newAsset carrying the targets — the new asset's
+        first subasset is trivially primary). A subasset row has no target: targets
+        live on the asset (newAsset here, PUT /assets/{id} afterwards).
+      properties:
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        ticker:
+          type: string
+          maxLength: 20
+          minLength: 0
+        name:
+          type: string
+          maxLength: 200
+          minLength: 0
+        exchange:
+          type: string
+          enum:
+          - XTB
+          - BINANCE
+          - OTHER
+        assetClass:
+          type: string
+          enum:
+          - ETF
+          - METALS
+          - CRYPTO
+          - STOCK
+          - CURRENCY
+        exposure:
+          type: string
+          enum:
+          - CRYPTO
+          - METALS
+          - STOCKS
+          - COMMODITIES
+          - CURRENCY
+        priceCurrency:
+          type: string
+          enum:
+          - PLN
+          - EUR
+          - USD
+          - CHF
+          - GBP
+        yahooTicker:
+          type: string
+          maxLength: 50
+          minLength: 0
+        sortOrder:
+          type: integer
+          format: int32
+        assetId:
+          type: integer
+          format: int64
+        isPrimary:
+          type: boolean
+        newAsset:
+          $ref: '#/components/schemas/NewAssetRequest'
+      required:
+      - assetClass
+      - exchange
+      - exposure
+      - name
+      - priceCurrency
+      - ticker
+    BuyLegDto:
+      type: object
+      properties:
+        ticker:
+          type: string
+          minLength: 1
+        accountType:
+          type: string
+          enum:
+          - IKE_TATA
+          - IKE_MAMA
+          - IKZE_TATA
+          - IKZE_MAMA
+          - INNE
+        units:
+          type: number
+          format: double
+          minimum: 0
+        pricePln:
+          type: number
+          format: double
+          minimum: 0
+      required:
+      - pricePln
+      - ticker
+      - units
+    PositionTransferRequest:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        sold:
+          $ref: '#/components/schemas/SoldLegDto'
+        buys:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuyLegDto'
+          minItems: 1
+      required:
+      - buys
+      - sold
+    SoldLegDto:
+      type: object
+      properties:
+        ticker:
+          type: string
+          minLength: 1
+        accountType:
+          type: string
+          enum:
+          - IKE_TATA
+          - IKE_MAMA
+          - IKZE_TATA
+          - IKZE_MAMA
+          - INNE
+        units:
+          type: number
+          format: double
+          minimum: 0
+        pricePln:
+          type: number
+          format: double
+          minimum: 0
+      required:
+      - pricePln
+      - ticker
+      - units
+    PositionTransferResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/PositionTransferResultDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    PositionTransferResultDto:
+      type: object
+      properties:
+        transferId:
+          type: string
+          format: uuid
+        sold:
+          $ref: '#/components/schemas/SoldLegDto'
+        buys:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuyLegDto'
+    PriceRefreshResult:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32
+        succeeded:
+          type: integer
+          format: int32
+        failures:
+          type: array
+          items:
+            $ref: '#/components/schemas/TickerFailure'
+    TickerFailure:
+      type: object
+      properties:
+        ticker:
+          type: string
+        reason:
+          type: string
+    SingleResponseMapStringObject:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties: {}
+        meta:
+          $ref: '#/components/schemas/Meta'
+    CreateDepositRequest:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        depositDate:
+          type: string
+          format: date
+        amount:
+          type: number
+          format: double
+          minimum: 0.0
+        comment:
+          type: string
+      required:
+      - amount
+      - depositDate
+    DepositDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        depositDate:
+          type: string
+          format: date
+        amount:
+          type: number
+          format: double
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    SingleResponseDepositDto:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DepositDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    TokenExchangeRequest:
+      type: object
+      properties:
+        googleIdToken:
+          type: string
+          minLength: 1
+      required:
+      - googleIdToken
+    TokenExchangeResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+    ListResponseSettingDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SettingDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    PurchaseHistoryDataDto:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseSessionDto'
+    PurchaseLotDto:
+      type: object
+      properties:
+        ticker:
+          type: string
+        name:
+          type: string
+        units:
+          type: number
+          format: double
+        pricePln:
+          type: number
+          format: double
+        costPln:
+          type: number
+          format: double
+        currentPricePln:
+          type: number
+          format: double
+        currentValuePln:
+          type: number
+          format: double
+        gainPln:
+          type: number
+          format: double
+        gainPct:
+          type: number
+          format: double
+        priceAvailable:
+          type: boolean
+    PurchaseSessionDto:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        purchasedAt:
+          type: string
+          format: date
+        totalCostPln:
+          type: number
+          format: double
+        totalCurrentValuePln:
+          type: number
+          format: double
+        totalGainPln:
+          type: number
+          format: double
+        totalGainPct:
+          type: number
+          format: double
+        lots:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseLotDto'
+    SingleResponsePurchaseHistoryDataDto:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/PurchaseHistoryDataDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    PageInfo:
+      type: object
+      properties:
+        number:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        total:
+          type: integer
+          format: int64
+    PagedResponseAssetDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    ListResponsePriceEntry:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceEntry'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    PriceEntry:
+      type: object
+      properties:
+        ticker:
+          type: string
+        price:
+          type: number
+          format: double
+        currency:
+          type: string
+          enum:
+          - PLN
+          - EUR
+          - USD
+          - CHF
+          - GBP
+        pricePln:
+          type: number
+          format: double
+        fetchedAt:
+          type: string
+          format: date-time
+    FxRateEntry:
+      type: object
+      properties:
+        fromCurrency:
+          type: string
+          enum:
+          - PLN
+          - EUR
+          - USD
+          - CHF
+          - GBP
+        rateToPln:
+          type: number
+          format: double
+        source:
+          type: string
+        fetchedAt:
+          type: string
+          format: date-time
+    ListResponseFxRateEntry:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FxRateEntry'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    HistoriaEntryDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        portfolio:
+          type: string
+          enum:
+          - VARIABLE
+          - FIXED
+        snapshotDate:
+          type: string
+          format: date
+        totalDeposits:
+          type: number
+          format: double
+        portfolioValue:
+          type: number
+          format: double
+        xirr:
+          type: number
+          format: double
+        returnPct:
+          type: number
+          format: double
+        profitPln:
+          type: number
+          format: double
+        positionValues:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+        createdAt:
+          type: string
+          format: date-time
+        inflationAdjustedDeposits:
+          type: number
+          format: double
+        realReturnPct:
+          type: number
+          format: double
+        annualizedInflationPct:
+          type: number
+          format: double
+    PagedResponseHistoriaEntryDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoriaEntryDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    PagedResponseDepositDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DepositDto'
+        meta:
+          $ref: '#/components/schemas/Meta'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    SingleResponseXirrData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/XirrData'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    XirrData:
+      type: object
+      properties:
+        xirrPct:
+          type: number
+          format: double
+        totalInvestedPln:
+          type: number
+          format: double
+        currentValuePln:
+          type: number
+          format: double
+        simpleReturnPct:
+          type: number
+          format: double
+        yearsElapsed:
+          type: number
+          format: double
+        computedAt:
+          type: string
+          format: date-time

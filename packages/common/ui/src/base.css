@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "@common/ui-primitives/sans-font.css";
+@import "@common/ui-primitives/mono-font.css";
+@import "@common/ui-primitives/design-tokens.css";
+@import "./history-chart-tokens.css";

@@ -1,0 +1,137 @@
+collection:
+  get:
+    tags: [binance-transfers]
+    summary: List Binance transfer ledger rows with per-year PLN sums
+    operationId: listBinanceTransfers
+    security:
+      - bearerAuth: []
+    description: |
+      Flat side ledger of money sent to Binance, distilled from monthly deposits
+      (overlapping money — NOT additional capital; capital is recorded in /deposits).
+      Sole purpose: the yearly PLN sum for PIT-38 crypto acquisition costs.
+
+      When ?year is supplied, data contains only that year's rows; yearlySums
+      always covers all years. Rows are ordered by transferDate descending.
+    parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Filter rows to a single calendar year (by transferDate).
+    responses:
+      "200":
+        description: Ledger rows plus per-year PLN sums.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/binance-transfers.yaml#/BinanceTransfersListResponse"
+            example:
+              data:
+                - id: 126
+                  transferDate: "2026-03-16"
+                  amountPln: 6354.81
+                  amountNative: null
+                  nativeCurrency: null
+                  comment: "w tym EMERYTURA"
+                  source: "MANUAL"
+                  sessionId: null
+                  createdAt: "2026-06-11T18:00:00Z"
+                - id: 127
+                  transferDate: "2026-06-15"
+                  amountPln: 2100.00
+                  amountNative: null
+                  nativeCurrency: null
+                  comment: "Auto from session #8"
+                  source: "SESSION"
+                  sessionId: 8
+                  createdAt: "2026-06-15T17:45:00Z"
+              yearlySums:
+                - year: 2026
+                  totalPln: 24873.78
+                - year: 2025
+                  totalPln: 34349.80
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440010"
+                timestamp: "2026-06-15T18:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  post:
+    tags: [binance-transfers]
+    summary: Record a manual Binance transfer ledger row
+    operationId: createBinanceTransfer
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: "../components/parameters.yaml#/IdempotencyKey"
+    description: |
+      Creates a MANUAL ledger row (server sets source=MANUAL, sessionId=null).
+      amountNative and nativeCurrency are optional but must be supplied together
+      (mirrors the spreadsheet, where transfers were entered in EUR/GBP/PLN).
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/binance-transfers.yaml#/CreateBinanceTransferRequest"
+          example:
+            transferDate: "2026-06-16"
+            amountPln: 4275.50
+            amountNative: 1000.00
+            nativeCurrency: "EUR"
+            comment: "z pasywnego franki"
+    responses:
+      "201":
+        description: Ledger row created.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/binance-transfers.yaml#/BinanceTransferSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "409":
+        $ref: "../components/responses.yaml#/IdempotencyInProgress"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableOrKeyReused"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+item:
+  delete:
+    tags: [binance-transfers]
+    summary: Delete a Binance transfer ledger row
+    operationId: deleteBinanceTransfer
+    security:
+      - bearerAuth: []
+    description: >
+      Deletes any ledger row (MANUAL or SESSION) — manual correction facility
+      for a single-user app. Deleting a SESSION row does not touch the
+      completed session, its deposits, or positions.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "204":
+        description: Ledger row deleted.
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

@@ -1,0 +1,57 @@
+{
+  "Positions": [
+    {
+      "Ticker": "A1",
+      "IkeTata": "8.00000000",
+      "IkeMama": "0.00000000",
+      "IkzeTata": "0.00000000",
+      "IkzeMama": "0.00000000",
+      "Inne": "1.00000000",
+      "TotalSpentPln": "850.0000"
+    },
+    {
+      "Ticker": "A2",
+      "IkeTata": "0.00000000",
+      "IkeMama": "0.00000000",
+      "IkzeTata": "0.00000000",
+      "IkzeMama": "0.00000000",
+      "Inne": "1.00000000",
+      "TotalSpentPln": null
+    },
+    {
+      "Ticker": "B1",
+      "IkeTata": "0.00000000",
+      "IkeMama": "5.50000000",
+      "IkzeTata": "12.00000000",
+      "IkzeMama": "0.00000000",
+      "Inne": "0.00000000",
+      "TotalSpentPln": "330.0000"
+    }
+  ],
+  "Lots": [
+    {
+      "Ticker": "A1",
+      "Units": "3.00000000",
+      "PricePln": "100.00000000",
+      "CostPln": "300.0000"
+    },
+    {
+      "Ticker": "B1",
+      "Units": "7.50000000",
+      "PricePln": "20.00000000",
+      "CostPln": "150.0000"
+    }
+  ],
+  "Deposits": [
+    {
+      "Amount": "1500.0000",
+      "Comment": null
+    }
+  ],
+  "Cash": [
+    "700.0000",
+    "390.0000",
+    "260.0000",
+    "200.0000"
+  ]
+}

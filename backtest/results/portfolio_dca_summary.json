@@ -1,0 +1,170 @@
+[
+  {
+    "label": "1yr",
+    "start": "2025-06-16",
+    "months": 12,
+    "invested_pln": 12000.0,
+    "avg_active_assets": 29.9,
+    "pct_short_regression_window": 2.0,
+    "schemes": {
+      "equal": {
+        "final_pln": 12856,
+        "roi_pct": 7.1,
+        "irr_annual_pct": 13.4,
+        "avg_hhi": 0.033,
+        "avg_max_alloc_pct": 3.3,
+        "max_drawdown_pct": -4.1
+      },
+      "geom_1.25": {
+        "final_pln": 12218,
+        "roi_pct": 1.8,
+        "irr_annual_pct": 3.4,
+        "avg_hhi": 0.036,
+        "avg_max_alloc_pct": 6.4,
+        "max_drawdown_pct": -4.3
+      },
+      "geom_1.5": {
+        "final_pln": 11752,
+        "roi_pct": -2.1,
+        "irr_annual_pct": -3.8,
+        "avg_hhi": 0.043,
+        "avg_max_alloc_pct": 10.3,
+        "max_drawdown_pct": -4.1
+      },
+      "geom_2.0": {
+        "final_pln": 11119,
+        "roi_pct": -7.3,
+        "irr_annual_pct": -13.3,
+        "avg_hhi": 0.075,
+        "avg_max_alloc_pct": 20.0,
+        "max_drawdown_pct": -3.1
+      }
+    }
+  },
+  {
+    "label": "3yr",
+    "start": "2023-06-16",
+    "months": 36,
+    "invested_pln": 36000.0,
+    "avg_active_assets": 26.8,
+    "pct_short_regression_window": 1.0,
+    "schemes": {
+      "equal": {
+        "final_pln": 183230,
+        "roi_pct": 409.0,
+        "irr_annual_pct": 140.6,
+        "avg_hhi": 0.038,
+        "avg_max_alloc_pct": 3.8,
+        "max_drawdown_pct": -96.7
+      },
+      "geom_1.25": {
+        "final_pln": 133981,
+        "roi_pct": 272.2,
+        "irr_annual_pct": 107.2,
+        "avg_hhi": 0.04,
+        "avg_max_alloc_pct": 5.7,
+        "max_drawdown_pct": -96.0
+      },
+      "geom_1.5": {
+        "final_pln": 106467,
+        "roi_pct": 195.7,
+        "irr_annual_pct": 84.8,
+        "avg_hhi": 0.044,
+        "avg_max_alloc_pct": 7.9,
+        "max_drawdown_pct": -94.9
+      },
+      "geom_2.0": {
+        "final_pln": 80006,
+        "roi_pct": 122.2,
+        "irr_annual_pct": 59.4,
+        "avg_hhi": 0.061,
+        "avg_max_alloc_pct": 12.6,
+        "max_drawdown_pct": -91.7
+      }
+    }
+  },
+  {
+    "label": "5yr",
+    "start": "2021-06-16",
+    "months": 60,
+    "invested_pln": 60000.0,
+    "avg_active_assets": 24.9,
+    "pct_short_regression_window": 1.0,
+    "schemes": {
+      "equal": {
+        "final_pln": 670817,
+        "roi_pct": 1018.0,
+        "irr_annual_pct": 110.5,
+        "avg_hhi": 0.041,
+        "avg_max_alloc_pct": 4.1,
+        "max_drawdown_pct": -97.3
+      },
+      "geom_1.25": {
+        "final_pln": 444768,
+        "roi_pct": 641.3,
+        "irr_annual_pct": 88.7,
+        "avg_hhi": 0.044,
+        "avg_max_alloc_pct": 6.5,
+        "max_drawdown_pct": -96.9
+      },
+      "geom_1.5": {
+        "final_pln": 324782,
+        "roi_pct": 441.3,
+        "irr_annual_pct": 73.0,
+        "avg_hhi": 0.051,
+        "avg_max_alloc_pct": 9.3,
+        "max_drawdown_pct": -96.3
+      },
+      "geom_2.0": {
+        "final_pln": 214494,
+        "roi_pct": 257.5,
+        "irr_annual_pct": 53.5,
+        "avg_hhi": 0.077,
+        "avg_max_alloc_pct": 15.2,
+        "max_drawdown_pct": -94.5
+      }
+    }
+  },
+  {
+    "label": "8yr",
+    "start": "2018-06-16",
+    "months": 96,
+    "invested_pln": 96000.0,
+    "avg_active_assets": 22.0,
+    "pct_short_regression_window": 2.0,
+    "schemes": {
+      "equal": {
+        "final_pln": 1015990,
+        "roi_pct": 958.3,
+        "irr_annual_pct": 58.1,
+        "avg_hhi": 0.048,
+        "avg_max_alloc_pct": 4.8,
+        "max_drawdown_pct": -95.7
+      },
+      "geom_1.25": {
+        "final_pln": 796775,
+        "roi_pct": 730.0,
+        "irr_annual_pct": 51.8,
+        "avg_hhi": 0.051,
+        "avg_max_alloc_pct": 7.8,
+        "max_drawdown_pct": -94.1
+      },
+      "geom_1.5": {
+        "final_pln": 681824,
+        "roi_pct": 610.2,
+        "irr_annual_pct": 47.9,
+        "avg_hhi": 0.061,
+        "avg_max_alloc_pct": 11.2,
+        "max_drawdown_pct": -91.8
+      },
+      "geom_2.0": {
+        "final_pln": 578576,
+        "roi_pct": 502.7,
+        "irr_annual_pct": 43.8,
+        "avg_hhi": 0.095,
+        "avg_max_alloc_pct": 18.5,
+        "max_drawdown_pct": -85.3
+      }
+    }
+  }
+]

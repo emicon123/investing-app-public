@@ -1,0 +1,157 @@
+# --- Deposits ---
+Deposit:
+  type: object
+  required: [depositDate, amount, currency, exchange, accountType, portfolio]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    depositDate:
+      type: string
+      format: date
+    amount:
+      type: number
+      format: double
+    currency:
+      $ref: "./enums.yaml#/Currency"
+    exchange:
+      $ref: "./enums.yaml#/Exchange"
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    comment:
+      type: [string, "null"]
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+CreateDepositRequest:
+  type: object
+  required: [depositDate, amount, currency, exchange, accountType, portfolio]
+  properties:
+    depositDate:
+      type: string
+      format: date
+    amount:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+    currency:
+      $ref: "./enums.yaml#/Currency"
+    exchange:
+      $ref: "./enums.yaml#/Exchange"
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    comment:
+      type: [string, "null"]
+
+DepositsPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/Deposit"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+XirrResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: object
+      properties:
+        portfolio:
+          $ref: "./enums.yaml#/Portfolio"
+        xirrPct:
+          type: [number, "null"]
+          format: double
+        totalInvestedPln:
+          type: number
+          format: double
+        currentValuePln:
+          type: number
+          format: double
+        simpleReturnPct:
+          type: [number, "null"]
+          format: double
+        yearsElapsed:
+          type: number
+          format: double
+        computedAt:
+          type: string
+          format: date-time
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+AccountCapUsage:
+  type: object
+  properties:
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    year:
+      type: integer
+    totalDepositedPln:
+      type: number
+      format: double
+    annualCapPln:
+      type: number
+      format: double
+    remainingPln:
+      type: number
+      format: double
+    utilizationPct:
+      type: number
+      format: double
+
+AccountCapUsageResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/AccountCapUsage"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+AccountCapAdjustmentRequest:
+  type: object
+  description: >
+    The remaining IKE/IKZE contribution limit the user asserts for (accountType, year),
+    e.g. read off a broker statement (ADR-058). Not a delta: the backend stores the signed
+    adjustment that makes the computed remainingPln equal this figure.
+  required: [accountType, year, remainingPln]
+  properties:
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+      description: IKE or IKZE. REGULAR has no statutory cap and is rejected with 400 VALIDATION_ERROR.
+    year:
+      type: integer
+      minimum: 2021
+      maximum: 2100
+    remainingPln:
+      type: number
+      format: double
+      description: Signed asserted remaining limit in PLN (negative = over-contributed).
+
+AccountCapUsageSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/AccountCapUsage"
+    meta:
+      $ref: "./common.yaml#/Meta"
+

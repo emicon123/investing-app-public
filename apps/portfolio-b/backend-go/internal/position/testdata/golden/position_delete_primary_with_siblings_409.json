@@ -1,0 +1,15 @@
+{
+  "status": 409,
+  "body": {
+    "errors": [
+      {
+        "code": "CONFLICT",
+        "message": "asset still has other subassets — set a new primary first"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

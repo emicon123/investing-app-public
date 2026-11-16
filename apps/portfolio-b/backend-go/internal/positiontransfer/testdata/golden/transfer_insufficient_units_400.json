@@ -1,0 +1,15 @@
+{
+  "status": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALIDATION_ERROR",
+        "message": "Insufficient units: SOLD holds 0 units, cannot sell 1"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

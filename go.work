@@ -1,0 +1,10 @@
+go 1.27
+
+toolchain go1.27.4
+
+use (
+	./apps/portfolio-b/backend-go
+	./apps/portfolio-c/backend-go
+	./apps/main/backend-go
+	./packages/common/go/common-go
+)

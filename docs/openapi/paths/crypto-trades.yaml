@@ -1,0 +1,138 @@
+collection:
+  get:
+    tags: [crypto-trades]
+    summary: List crypto trades
+    operationId: listCryptoTrades
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: ticker
+        in: query
+        schema:
+          type: string
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: exchange
+        in: query
+        schema:
+          $ref: "../components/schemas/enums.yaml#/Exchange"
+      - name: side
+        in: query
+        schema:
+          $ref: "../components/schemas/enums.yaml#/TradeSide"
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 50
+        description: >
+          Mirrors Java @PageableDefault(size = 50). No server-side maximum is
+          enforced (Java Pageable passes any size through) — fixed 2026-09-15
+          (was default 20 / maximum 100, neither matching the implementation).
+    responses:
+      "200":
+        description: Paginated crypto trades.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/crypto-trades.yaml#/CryptoTradesPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  post:
+    tags: [crypto-trades]
+    summary: Record a new crypto trade
+    operationId: createCryptoTrade
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: "../components/parameters.yaml#/IdempotencyKey"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/crypto-trades.yaml#/CreateCryptoTradeRequest"
+          example:
+            tradeDate: "2026-06-01"
+            ticker: "BTC-USD"
+            exchange: "BINANCE"
+            accountType: "REGULAR"
+            side: "BUY"
+            quantity: 0.01
+            unitPrice: 65000.0
+            priceCurrency: "USD"
+            totalAmount: 650.0
+            amountPln: 2530.0
+            notes: "Monthly DCA buy"
+    responses:
+      "201":
+        description: Trade recorded.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, meta]
+              properties:
+                data:
+                  $ref: "../components/schemas/crypto-trades.yaml#/CryptoTrade"
+                meta:
+                  $ref: "../components/schemas/common.yaml#/Meta"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "409":
+        $ref: "../components/responses.yaml#/IdempotencyInProgress"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableOrKeyReused"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+taxSummary:
+  get:
+    tags: [crypto-trades]
+    summary: Annual PIT-38 tax summary
+    operationId: getCryptoTaxSummary
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: year
+        in: query
+        required: true
+        schema:
+          type: integer
+        example: 2025
+    description: |
+      Groups the year's trades by ticker: totalBuysPln, totalSellsPln, netGainPln,
+      estimatedBelkaTaxPln (19% of positive net gain, scale 4 HALF_UP). No
+      FIFO/LIFO — raw PLN amounts. Yearly totals plus a byTicker breakdown.
+      Fixed 2026-09-15: field names previously documented as netGain/belka —
+      the wire names are netGainPln/estimatedBelkaTaxPln.
+    responses:
+      "200":
+        description: Tax summary by ticker.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/crypto-trades.yaml#/CryptoTaxSummaryResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

@@ -1,0 +1,100 @@
+/* Root's theme: "electric blue" hues for the shared psychedelic
+   design-tokens.css (task 139, ADR-086). Matched via
+   `<html data-app-theme="main">`, set statically in index.html
+   (alongside the existing static `class="dark"`) so it's present on
+   first paint — no flash-of-unthemed-content window. */
+[data-app-theme="main"] {
+  --theme-hue-primary: 230;
+  --theme-hue-secondary: 218;
+  --theme-hue-surface: 222;
+  --theme-hue-foreground: 226;
+  --theme-hue-accent: 245;
+  --theme-hue-popover: 215;
+  --theme-hue-glow: 235;
+
+  /* --chart-1 (.dark) reuses the primary electric blue directly —
+     30°+ from every fixed chart hue (cyan 200, magenta 320, green 140,
+     amber 65), so no bespoke tuning is needed (ADR-086 §1), unlike
+     portfolioC's --theme-chart-1 override. */
+  --theme-chart-1: oklch(0.68 0.32 230);
+}
+
+/* ============================================================
+   ROOT-ONLY ADDITIVE CSS (ADR-086 §5)
+   No portfolioB/portfolioC counterpart to converge with — root's own
+   PageHeader/AppLayout section-title eyebrow, brand-mark orb, and
+   finance-table numeric alignment. (The PrismValue chromatic-aberration
+   effect was removed with its last consumer, the old summary bar, in
+   task 170.)
+   Carried over verbatim from the pre-convergence index.css
+   (lift-and-relocate, not a rewrite) — a Decorator layered on the
+   shared structural base, the same shape ADR-076 already blessed for
+   badge.tsx's one extra class.
+   ============================================================ */
+
+/* Brand-mark ambient drift — rotates the gradient itself (transform),
+   never shifts hue, so the violet/gold mark never sweeps through
+   off-palette colors. */
+@keyframes brand-mark-drift {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@layer base {
+  /* Tabular figures everywhere numbers actually line up in columns */
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* --- Eyebrow label (section context, e.g. "PORTFEL · MAIN") --- */
+  .eyebrow {
+    font-family: var(--font-sans);
+    color: var(--neon-amber);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  /* --- Brand mark: small liquid-light orb beside the wordmark ---
+     Single dominant violet with a restrained gold sliver — not a
+     4-color rainbow lollipop. Rotates the gradient itself (transform),
+     not a hue-shift filter, so it never sweeps through off-palette
+     hues. Slow ambient drift, not a spin. Kept as its own fixed
+     violet/gold identity color rather than following root's new blue
+     accent hue — a logo mark, not a themed UI element (ADR-086 §5). */
+  .brand-mark {
+    position: relative;
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: conic-gradient(
+      from 0deg,
+      oklch(0.58 0.24 295) 0%,
+      oklch(0.42 0.18 305) 45%,
+      oklch(0.62 0.16 78) 68%,
+      oklch(0.58 0.24 295) 100%
+    );
+    box-shadow: 0 0 6px oklch(0.58 0.24 295 / 40%), 0 0 12px oklch(0.58 0.24 295 / 16%);
+    animation: brand-mark-drift 20s linear infinite;
+  }
+}
+
+/* Prefers reduced motion — root-only animated elements. Not covered by
+   the shared design-tokens.css reduced-motion block, which only knows
+   about the shared nebula blobs / conic-halo (it
+   has no idea .brand-mark exists). Carried over from the
+   pre-convergence index.css's own reduced-motion block, minus
+   .nebula-blob-6 (dropped, ADR-086 §4 — root converges to the shared
+   5-blob shape, already covered by design-tokens.css's own block). */
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark {
+    animation: none !important;
+    transition: none !important;
+  }
+}

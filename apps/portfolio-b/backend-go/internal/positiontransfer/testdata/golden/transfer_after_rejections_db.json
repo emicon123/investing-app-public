@@ -1,0 +1,54 @@
+{
+  "Positions": [
+    {
+      "Ticker": "BUY",
+      "IkeTata": "0.00000000",
+      "IkeMama": "0.00000000",
+      "IkzeTata": "0.00000000",
+      "IkzeMama": "10.00000000",
+      "Inne": "0.00000000",
+      "TotalSpentPln": "240.0000"
+    },
+    {
+      "Ticker": "SIB",
+      "IkeTata": "4.00000000",
+      "IkeMama": "0.00000000",
+      "IkzeTata": "0.00000000",
+      "IkzeMama": "0.00000000",
+      "Inne": "0.00000000",
+      "TotalSpentPln": "200.0000"
+    },
+    {
+      "Ticker": "SOLD",
+      "IkeTata": "6.00000000",
+      "IkeMama": "0.00000000",
+      "IkzeTata": "0.00000000",
+      "IkzeMama": "1.00000000",
+      "Inne": "0.00000000",
+      "TotalSpentPln": "700.0000"
+    }
+  ],
+  "Legs": [
+    {
+      "Ticker": "SOLD",
+      "AccountType": "IKE_TATA",
+      "UnitsDelta": "-4.00000000",
+      "PricePln": "100.00000000",
+      "TotalPln": "-400.0000"
+    },
+    {
+      "Ticker": "SIB",
+      "AccountType": "IKE_TATA",
+      "UnitsDelta": "4.00000000",
+      "PricePln": "50.00000000",
+      "TotalPln": "200.0000"
+    },
+    {
+      "Ticker": "BUY",
+      "AccountType": "IKZE_MAMA",
+      "UnitsDelta": "8.00000000",
+      "PricePln": "25.00000000",
+      "TotalPln": "200.0000"
+    }
+  ]
+}

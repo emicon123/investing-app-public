@@ -1,0 +1,220 @@
+# --- Market Data ---
+PriceEntry:
+  type: object
+  properties:
+    ticker:
+      type: string
+    price:
+      type: number
+      format: double
+    currency:
+      $ref: "./enums.yaml#/Currency"
+    pricePln:
+      type: [number, "null"]
+      format: double
+    fetchedAt:
+      type: string
+      format: date-time
+
+FxRateEntry:
+  type: object
+  properties:
+    fromCurrency:
+      $ref: "./enums.yaml#/Currency"
+    rateToPln:
+      type: number
+      format: double
+    source:
+      type: string
+    fetchedAt:
+      type: string
+      format: date-time
+
+PricesListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/PriceEntry"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+FxRatesListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/FxRateEntry"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+PriceRefreshResult:
+  type: object
+  description: >
+    Raw result of a synchronous price refresh — NOT wrapped in the standard
+    `{data, meta}` envelope. `POST /market-data/prices/refresh` returns this shape
+    directly on the wire (`ResponseEntity<PriceRefreshResult>` in the Java
+    controller), matching what `useRefreshPrices.ts` expects.
+  required: [total, succeeded, failures]
+  properties:
+    total:
+      type: integer
+      description: Total number of tickers a refresh was attempted for.
+    succeeded:
+      type: integer
+      description: Number of tickers successfully refreshed.
+    failures:
+      type: array
+      items:
+        $ref: "#/TickerFailure"
+
+TickerFailure:
+  type: object
+  required: [ticker, reason]
+  properties:
+    ticker:
+      type: string
+    reason:
+      type: string
+
+RegressionDataPoint:
+  type: object
+  description: >
+    One row of log-linear regression output (mirrors Java RegressionPointDto).
+    Actual-price fields (close/high/low/logN/residual) are null for future
+    extrapolated rows. Fixed 2026-09-15: the previous nested
+    {prices,trendline,sdBands} shape never matched the implementation.
+  properties:
+    date:
+      type: string
+      format: date
+    count:
+      type: integer
+      description: 1-indexed position in the full fitted history (oldest = 1).
+    close:
+      type: [number, "null"]
+      format: double
+    high:
+      type: [number, "null"]
+      format: double
+    low:
+      type: [number, "null"]
+      format: double
+    logN:
+      type: [number, "null"]
+      format: double
+      description: ln(close).
+    trendline:
+      type: number
+      format: double
+      description: exp(lnTrendline) — the trend value in price units.
+    lnTrendline:
+      type: number
+      format: double
+      description: intercept + slope * count.
+    residual:
+      type: [number, "null"]
+      format: double
+      description: logN - lnTrendline.
+    sd1plus:
+      type: number
+      format: double
+    sd2plus:
+      type: number
+      format: double
+    sd1minus:
+      type: number
+      format: double
+    sd2minus:
+      type: number
+      format: double
+    sd3plus:
+      type: number
+      format: double
+    sd3minus:
+      type: number
+      format: double
+    sd4plus:
+      type: number
+      format: double
+    sd4minus:
+      type: number
+      format: double
+      description: trendline * exp(+4*sd); bands are trendline * exp(k*sd), k = ±1..±4.
+
+RegressionResponse:
+  type: object
+  description: >
+    Flat shape mirroring Java LinearRegressionResponse (returned raw, NOT wrapped
+    in a {data} envelope — meta rides inside the same object). Fixed 2026-09-15:
+    the previous nested {data: {ticker,prices,trendline,sdBands}, meta} shape
+    never matched the implementation (see LinearRegressionResponse.java javadoc).
+  required: [ticker, interval, slope, intercept, stdDev, dataPoints, meta]
+  properties:
+    ticker:
+      type: string
+    interval:
+      type: string
+      description: d | wk | mo (echo of the request param).
+    slope:
+      type: number
+      format: double
+      description: OLS slope of ln(close) over the 1-indexed full history.
+    intercept:
+      type: number
+      format: double
+    stdDev:
+      type: number
+      format: double
+      description: Sample standard deviation (n-1) of the ln residuals.
+    dataPoints:
+      type: array
+      items:
+        $ref: "#/RegressionDataPoint"
+    priceSource:
+      $ref: "./enums.yaml#/PriceSource"
+      description: >
+        One value for the whole response, not per-point (ADR-085 §8) — provenance of the
+        price series this regression was fit against. trendline/bands are derived from
+        it and have no independent source of their own. Absent/omitted is equivalent
+        to YAHOO; only ever non-YAHOO for the four Virtune ETP tickers.
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+
+BenchmarkHistoryPoint:
+  type: object
+  required: [symbol, date, close]
+  properties:
+    symbol:
+      type: string
+      example: "BTC-USD"
+    date:
+      type: string
+      format: date
+      example: "2011-07-01"
+    close:
+      type: number
+      format: double
+      description: Raw weekly close; the frontend plots it directly on a log-scale right-hand axis (not normalized).
+    priceSource:
+      $ref: "./enums.yaml#/PriceSource"
+      description: >
+        Absent/omitted is equivalent to YAHOO (ADR-085). Only ever non-YAHOO if a Virtune ETP
+        ticker is ever added to this overlay's fixed symbol set — not the case for the four
+        benchmarks currently wired in (BTC-USD, ^NDX, GC=F, ^HSI).
+
+BenchmarkHistoryListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BenchmarkHistoryPoint"
+    meta:
+      $ref: "./common.yaml#/Meta"

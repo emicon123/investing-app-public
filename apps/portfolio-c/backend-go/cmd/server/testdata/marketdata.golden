@@ -1,0 +1,18 @@
+== get-prices-no-filter 200 application/json
+{"data":[{"currency":"USD","fetchedAt":"2026-09-28T11:49:52.783035+02:00","price":65432.1234,"pricePln":261728.49361234,"ticker":"BTC-USD"},{"currency":"USD","fetchedAt":"2026-09-28T10:49:52.783035+02:00","price":200,"pricePln":800.5,"ticker":"AAPL"},{"currency":"PLN","fetchedAt":"2026-09-28T09:49:52.783035Z","price":123.456789,"pricePln":123.456789,"ticker":"ETFBW20TR.WA"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== get-prices-ticker-filter 200 application/json
+{"data":[{"currency":"USD","fetchedAt":"2026-09-28T11:49:52.783035+02:00","price":65432.1234,"pricePln":261728.49361234,"ticker":"BTC-USD"},{"currency":"PLN","fetchedAt":"2026-09-28T09:49:52.783035Z","price":123.456789,"pricePln":123.456789,"ticker":"ETFBW20TR.WA"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== get-prices-blank-filter 200 application/json
+{"data":[{"currency":"USD","fetchedAt":"2026-09-28T11:49:52.783035+02:00","price":65432.1234,"pricePln":261728.49361234,"ticker":"BTC-USD"},{"currency":"USD","fetchedAt":"2026-09-28T10:49:52.783035+02:00","price":200,"pricePln":800.5,"ticker":"AAPL"},{"currency":"PLN","fetchedAt":"2026-09-28T09:49:52.783035Z","price":123.456789,"pricePln":123.456789,"ticker":"ETFBW20TR.WA"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== get-prices-comma-only-filter 200 application/json
+{"data":[],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== get-prices-invalid-ticker 400 application/json
+{"errors":[{"code":"VALIDATION_ERROR","message":"Invalid ticker: btc-usd"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== get-prices-too-long 400 application/json
+{"errors":[{"code":"VALIDATION_ERROR","field":"tickers","message":"size must be between 0 and 500"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== refresh-prices 200 application/json
+{"total":2,"succeeded":1,"failures":[{"ticker":"GONE.WA","reason":"YAHOO: no price for GONE.WA"}]}
+== get-fx-rates 200 application/json
+{"data":[{"fetchedAt":"<now>","fromCurrency":"PLN","rateToPln":1,"source":"INTERNAL"},{"fetchedAt":"2026-09-28T11:49:52.783035+02:00","fromCurrency":"USD","rateToPln":4.00012345,"source":"YAHOO"},{"fetchedAt":"2026-09-28T09:49:52.783035Z","fromCurrency":"EUR","rateToPln":4.28171234,"source":"YAHOO"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== refresh-fx-rates 204 
+

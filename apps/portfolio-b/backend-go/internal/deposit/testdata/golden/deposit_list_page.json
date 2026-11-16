@@ -1,0 +1,23 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "id": "<masked>",
+        "depositDate": "2025-03-01",
+        "amount": 300,
+        "comment": "marzec",
+        "createdAt": "<masked>"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    },
+    "page": {
+      "number": 1,
+      "size": 1,
+      "total": 3
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "status": 201,
+  "body": {
+    "data": {
+      "id": "<masked>",
+      "key": "GA-1",
+      "name": "Gold",
+      "exposure": "METALS",
+      "assetClass": "ETF",
+      "targetAllocationPct": 60,
+      "targetAllocationPctRiskOff": 70,
+      "computed": {},
+      "subassets": [
+        {
+          "id": "<masked>",
+          "assetId": "<masked>",
+          "isPrimary": true,
+          "ticker": "GA-1",
+          "name": "Gold A",
+          "exchange": "XTB",
+          "yahooTicker": "GA1.WA",
+          "priceCurrency": "PLN",
+          "unitsIkeTata": 0,
+          "unitsIkeMama": 0,
+          "unitsIkzeTata": 0,
+          "unitsIkzeMama": 0,
+          "unitsInne": 0,
+          "effectiveUnits": 0,
+          "sortOrder": 1
+        }
+      ],
+      "createdAt": "<masked>",
+      "updatedAt": "<masked>"
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

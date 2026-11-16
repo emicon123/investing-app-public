@@ -1,0 +1,9 @@
+{
+  "name": "portfolio-c",
+  "private": true,
+  "workspaces": ["packages/common/ts", "packages/common/ui", "frontend-web"],
+  "scripts": {
+    "build:web": "npm run build --workspace=frontend-web",
+    "dev:web": "npm run dev --workspace=frontend-web"
+  }
+}

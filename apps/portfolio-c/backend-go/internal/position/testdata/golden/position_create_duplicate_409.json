@@ -1,0 +1,15 @@
+{
+  "status": 409,
+  "body": {
+    "errors": [
+      {
+        "code": "DUPLICATE_ENTRY",
+        "message": "Resource already exists"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

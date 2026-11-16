@@ -1,0 +1,50 @@
+[
+  {
+    "label": "1yr",
+    "start_date": "2025-06-13",
+    "initial_pln": 1000.0,
+    "initial_usdt": 272.12,
+    "usdpln_at_start": 3.6748,
+    "usdpln_at_end": 3.6677,
+    "final_value_usdt": 212.7797,
+    "final_value_pln": 780.41,
+    "roi_pct": -21.96,
+    "trades_total": 414
+  },
+  {
+    "label": "3yr",
+    "start_date": "2023-06-14",
+    "initial_pln": 1000.0,
+    "initial_usdt": 240.56,
+    "usdpln_at_start": 4.1569,
+    "usdpln_at_end": 3.6677,
+    "final_value_usdt": 375.8923,
+    "final_value_pln": 1378.66,
+    "roi_pct": 37.87,
+    "trades_total": 1515
+  },
+  {
+    "label": "5yr",
+    "start_date": "2021-06-14",
+    "initial_pln": 1000.0,
+    "initial_usdt": 269.29,
+    "usdpln_at_start": 3.7134,
+    "usdpln_at_end": 3.6677,
+    "final_value_usdt": 523.416,
+    "final_value_pln": 1919.74,
+    "roi_pct": 91.97,
+    "trades_total": 2918
+  },
+  {
+    "label": "8yr",
+    "start_date": "2018-06-15",
+    "initial_pln": 1000.0,
+    "initial_usdt": 269.98,
+    "usdpln_at_start": 3.704,
+    "usdpln_at_end": 3.6677,
+    "final_value_usdt": 1192.1497,
+    "final_value_pln": 4372.46,
+    "roi_pct": 337.25,
+    "trades_total": 5580
+  }
+]

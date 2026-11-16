@@ -1,0 +1,15 @@
+{
+  "status": 409,
+  "body": {
+    "errors": [
+      {
+        "code": "CONFLICT",
+        "message": "a primary subasset cannot be moved to another asset — set another primary first, or delete and re-create it under the target asset"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

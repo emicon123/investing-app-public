@@ -1,0 +1,75 @@
+name: OpenAPI Lint
+
+# Separate from go-tests.yml on purpose: a spec-only edit must not fan out into the Go
+# suites (Testcontainers, race, vuln, lint), and a Go-only edit must not run this gate.
+#
+# Task 189: the four OpenAPI documents are lint-clean under the root redocly.yaml
+# (`extends: recommended` + two justified opt-outs); this keeps them that way.
+#   - docs/openapi/**          main spec sources
+#   - docs/openapi.yaml        main spec bundle (generated from the sources)
+#   - apps/{portfolio-b,portfolio-c}-investing-app/docs/openapi.yaml   hand-maintained sibling specs
+# `deploy-pi.yml` ignores docs/**, so a spec-only push runs this gate and deploys nothing.
+# No secrets, no deployment. Everything is pinned to an exact version; bump deliberately.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/openapi/**'
+      - 'docs/openapi.yaml'
+      - 'apps/*/docs/openapi*'
+      - 'redocly.yaml'
+      - '.github/workflows/openapi-lint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/openapi/**'
+      - 'docs/openapi.yaml'
+      - 'apps/*/docs/openapi*'
+      - 'redocly.yaml'
+      - '.github/workflows/openapi-lint.yml'
+
+# A newer push to the same PR supersedes the older run; runs on main always finish.
+concurrency:
+  group: openapi-lint-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  openapi-lint:
+    name: redocly lint + bundle drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Node 24 is what the three nginx/frontend Dockerfiles build with (node:24-alpine).
+      # setup-node v7.1.0 (2026-10-08).
+      - name: Set up Node
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24.16.0'
+
+      # Run from the repo root so the root redocly.yaml is picked up. Exit 0 = no errors;
+      # warnings do not fail the run. @redocly/cli 2.64.1 = the version in package-lock.json.
+      - name: redocly lint (main source, main bundle, portfolio-b, portfolio-c)
+        run: >-
+          npx --yes @redocly/cli@2.64.1 lint
+          docs/openapi/openapi.yaml
+          docs/openapi.yaml
+          apps/portfolio-b/docs/openapi.yaml
+          apps/portfolio-c/docs/openapi.yaml
+
+      # The checked-in bundle must equal a fresh bundle of the sources, so it can never lag
+      # them (`npm run openapi:bundle` regenerates it). `git diff --exit-code` also covers a
+      # bundle that was hand-edited.
+      - name: Bundle drift (docs/openapi.yaml matches docs/openapi/ sources)
+        run: |
+          set -euo pipefail
+          npx --yes @redocly/cli@2.64.1 bundle docs/openapi/openapi.yaml -o docs/openapi.yaml
+          if ! git diff --exit-code -- docs/openapi.yaml; then
+            echo "::error::docs/openapi.yaml differs from a fresh bundle of docs/openapi/ - run 'npm run openapi:bundle' and commit the result."
+            exit 1
+          fi

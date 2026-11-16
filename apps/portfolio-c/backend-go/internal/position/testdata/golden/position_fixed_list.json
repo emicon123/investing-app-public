@@ -1,0 +1,52 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "id": "<masked>",
+        "portfolio": "FIXED",
+        "key": "GA-1",
+        "name": "Gold",
+        "exposure": "METALS",
+        "assetClass": "ETF",
+        "targetAllocationPct": 100,
+        "computed": {
+          "unitsTotal": 0,
+          "pricePln": 10,
+          "priceNative": 10,
+          "valuePln": 0,
+          "equivalentUnits": 0
+        },
+        "subassets": [
+          {
+            "id": "<masked>",
+            "assetId": "<masked>",
+            "isPrimary": true,
+            "ticker": "GA-1",
+            "name": "Gold A fixed",
+            "exchange": "XTB",
+            "yahooTicker": "GA1.WA",
+            "priceCurrency": "PLN",
+            "units": 0,
+            "effectiveUnits": 0,
+            "pricePln": 10,
+            "priceNative": 10,
+            "valuePln": 0,
+            "sortOrder": 0
+          }
+        ],
+        "createdAt": "<masked>",
+        "updatedAt": "<masked>"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    },
+    "page": {
+      "number": 0,
+      "size": 20,
+      "total": 1
+    }
+  }
+}

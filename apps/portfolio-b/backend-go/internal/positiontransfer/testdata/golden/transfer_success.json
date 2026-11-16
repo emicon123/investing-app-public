@@ -1,0 +1,32 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "transferId": "<masked>",
+      "sold": {
+        "ticker": "SOLD",
+        "accountType": "IKE_TATA",
+        "units": 4,
+        "pricePln": 100
+      },
+      "buys": [
+        {
+          "ticker": "SIB",
+          "accountType": "IKE_TATA",
+          "units": 4,
+          "pricePln": 50
+        },
+        {
+          "ticker": "BUY",
+          "accountType": "IKZE_MAMA",
+          "units": 8,
+          "pricePln": 25
+        }
+      ]
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

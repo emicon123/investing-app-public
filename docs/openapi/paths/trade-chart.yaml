@@ -1,0 +1,177 @@
+tickers:
+  get:
+    tags: [market-data]
+    summary: List tickers eligible for the trade-history chart
+    operationId: getTradeChartTickers
+    security:
+      - bearerAuth: []
+    description: |
+      Backing list for the trade-history chart's ticker picker (ADR-057). Built
+      from DISTINCT asset_purchases.ticker — every ticker ever traded, including a
+      fully-liquidated position that still exists as a `positions` row (trims
+      reduce to target, not to zero, in the normal flow, but this list does not
+      rely on that holding forever) — joined to `positions` for display name /
+      yahooTicker / priceCurrency. A ticker with no matching `positions` row, or
+      whose matching row has a NULL yahoo_ticker, is omitted from `data` and
+      listed in `excluded` with a reason instead of causing an error. Never
+      triggers a Yahoo Finance call.
+    responses:
+      "200":
+        description: Chartable tickers plus any excluded ones with a reason.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/trade-chart.yaml#/TradeChartTickersResponse"
+            example:
+              data:
+                - ticker: "BTC"
+                  name: "Bitcoin"
+                  yahooTicker: "BTC-USD"
+                  priceCurrency: "USD"
+                  tradeCount: 24
+                  firstTradeAt: "2024-01-01T00:00:00Z"
+                  lastTradeAt: "2026-07-01T09:00:00Z"
+              excluded:
+                - ticker: "PL.ETNRIVETH"
+                  reason: "NO_POSITION_MATCH"
+                - ticker: "PLN"
+                  reason: "MISSING_YAHOO_TICKER"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440010"
+                timestamp: "2026-07-24T09:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+chart:
+  get:
+    tags: [market-data]
+    summary: Price series and trade markers for one ticker
+    operationId: getTradeChart
+    security:
+      - bearerAuth: []
+    description: |
+      Returns a raw close-price series for `ticker` (no regression fit and no log
+      transform, unlike GET /market-data/linear-regression) plus one marker per
+      asset_purchases row for that ticker, aggregated across every portfolio and
+      account_type the ticker was ever traded under (ADR-057 — the per-portfolio/
+      accountType breakdown is inside each marker, there is no separate filter
+      param). Markers are converted from PLN to the position's native
+      priceCurrency via a nearest-date historical FX lookup so they plot correctly
+      against the native-currency price series. Y-axis scale (linear vs. log) is
+      a frontend rendering choice over these same raw numbers — recommended
+      default is linear for this chart, unlike the log-default regression chart.
+    parameters:
+      - name: ticker
+        in: query
+        required: true
+        description: Internal app ticker (positions.ticker / asset_purchases.ticker), not the Yahoo symbol.
+        schema:
+          type: string
+        example: "BTC"
+      - name: interval
+        in: query
+        schema:
+          type: string
+          default: "wk"
+        example: "wk"
+      - name: fromDate
+        in: query
+        description: Inclusive lower bound for both the price series and the trade markers returned.
+        schema:
+          type: string
+          format: date
+      - name: toDate
+        in: query
+        description: Inclusive upper bound for both the price series and the trade markers returned.
+        schema:
+          type: string
+          format: date
+    responses:
+      "200":
+        description: Price series and trade markers for the ticker.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/trade-chart.yaml#/TradeChartResponse"
+            example:
+              data:
+                ticker: "BTC"
+                yahooTicker: "BTC-USD"
+                priceCurrency: "USD"
+                interval: "wk"
+                priceSeries:
+                  - date: "2024-01-01"
+                    open: 42100.0
+                    close: 42800.5
+                    high: 43500.0
+                    low: 41800.0
+                  - date: "2024-01-08"
+                    open: 42800.5
+                    close: 46200.0
+                    high: 46500.0
+                    low: 42600.0
+                trades:
+                  - id: 101
+                    purchasedAt: "2024-01-05T00:00:00Z"
+                    tradeType: "DCA_BUY"
+                    portfolio: "MAIN"
+                    accountType: "REGULAR"
+                    unitsDelta: 0.015
+                    pricePln: 178500.0
+                    priceNative: 44120.3
+                    totalPln: 2677.5
+                    sessionId: 12
+                  - id: 214
+                    purchasedAt: "2026-06-02T00:00:00Z"
+                    tradeType: "REBALANCING_TRIM_SELL"
+                    portfolio: "MAIN"
+                    accountType: "REGULAR"
+                    unitsDelta: -0.05
+                    pricePln: 410000.0
+                    priceNative: 101800.0
+                    totalPln: -20500.0
+                    sessionId: null
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440011"
+                timestamp: "2026-07-24T09:00:00Z"
+      "400":
+        description: >
+          Either the ticker's matching position has a NULL yahoo_ticker (cannot
+          fetch price history), or Yahoo Finance returned no OHLC data at all for
+          it — same IllegalArgumentException -> VALIDATION_ERROR convention GET
+          /market-data/linear-regression already uses for "No data found for
+          ticker".
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        description: >
+          No asset_purchases rows exist for this ticker, or no positions row
+          matches it — NoSuchElementException -> NOT_FOUND, same
+          "Position not found for ticker: X" message pattern
+          RebalancingTransferService already uses.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+      "503":
+        description: >
+          The ticker's priceCurrency is non-PLN and the required historical FX
+          series could not be fetched — PriceUnavailableException, same mapping
+          FxRateCacheService already uses. Never silently substitutes a 1.0 FX
+          rate (ADR-057).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"

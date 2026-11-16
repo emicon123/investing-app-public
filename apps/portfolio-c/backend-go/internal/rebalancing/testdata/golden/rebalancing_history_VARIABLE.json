@@ -1,0 +1,47 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "sessions": [
+        {
+          "sessionId": "<masked>",
+          "purchasedAt": "<masked>",
+          "totalCostPln": 550,
+          "totalCurrentValuePln": 550,
+          "totalGainPln": 0,
+          "totalGainPct": 0,
+          "lots": [
+            {
+              "ticker": "A1",
+              "name": "A primary",
+              "units": 4,
+              "pricePln": 100,
+              "costPln": 400,
+              "currentPricePln": 100,
+              "currentValuePln": 400,
+              "gainPln": 0,
+              "gainPct": 0,
+              "priceAvailable": true
+            },
+            {
+              "ticker": "B1",
+              "name": "B primary",
+              "units": 7.5,
+              "pricePln": 20,
+              "costPln": 150,
+              "currentPricePln": 20,
+              "currentValuePln": 150,
+              "gainPln": 0,
+              "gainPct": 0,
+              "priceAvailable": true
+            }
+          ]
+        }
+      ]
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

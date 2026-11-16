@@ -1,0 +1,165 @@
+1{
+  "signal": [
+    {
+      "label": "2021-12+ (IREN/WULF live)",
+      "n": 55,
+      "ism_prev": {
+        "spearman_IC": -0.237,
+        "pearson": -0.225,
+        "t_stat": -1.77,
+        "n": 55
+      },
+      "d_ism": {
+        "spearman_IC": -0.157,
+        "pearson": -0.17,
+        "t_stat": -1.15,
+        "n": 55
+      },
+      "beta_to_btc": 1.39,
+      "corr_to_btc": 0.72,
+      "mean_spread_pct": 4.73,
+      "spread_high_ism_pct": -9.89,
+      "spread_low_ism_pct": 7.98,
+      "n_high_ism": 7,
+      "n_low_ism": 35
+    },
+    {
+      "label": "2020-09+ (MSTR/MARA/HUT, CIFR from 21-08)",
+      "n": 71,
+      "ism_prev": {
+        "spearman_IC": -0.147,
+        "pearson": -0.11,
+        "t_stat": -1.23,
+        "n": 71
+      },
+      "d_ism": {
+        "spearman_IC": -0.131,
+        "pearson": -0.096,
+        "t_stat": -1.09,
+        "n": 70
+      },
+      "beta_to_btc": 1.24,
+      "corr_to_btc": 0.74,
+      "mean_spread_pct": 4.93,
+      "spread_high_ism_pct": 1.36,
+      "spread_low_ism_pct": 7.98,
+      "n_high_ism": 22,
+      "n_low_ism": 35
+    }
+  ],
+  "dca": [
+    {
+      "label": "2021-12+ (IREN/WULF live)",
+      "start": "2021-12",
+      "months": 55,
+      "schemes": {
+        "btc_only": {
+          "final": 8640,
+          "roi_pct": 57.1,
+          "irr_pct": 19.9,
+          "maxdd_pct": -38.4,
+          "ret_per_dd": 1.49
+        },
+        "eq_10": {
+          "final": 12245,
+          "roi_pct": 122.6,
+          "irr_pct": 36.1,
+          "maxdd_pct": -33.8,
+          "ret_per_dd": 3.63
+        },
+        "eq_17": {
+          "final": 14768,
+          "roi_pct": 168.5,
+          "irr_pct": 45.1,
+          "maxdd_pct": -33.4,
+          "ret_per_dd": 5.04
+        },
+        "eq_25": {
+          "final": 17652,
+          "roi_pct": 220.9,
+          "irr_pct": 54.0,
+          "maxdd_pct": -33.1,
+          "ret_per_dd": 6.67
+        },
+        "eq_40": {
+          "final": 23059,
+          "roi_pct": 319.3,
+          "irr_pct": 67.9,
+          "maxdd_pct": -32.9,
+          "ret_per_dd": 9.71
+        },
+        "ism_pro": {
+          "final": 13437,
+          "roi_pct": 144.3,
+          "irr_pct": 40.5,
+          "maxdd_pct": -33.6,
+          "ret_per_dd": 4.3
+        },
+        "ism_contra": {
+          "final": 16460,
+          "roi_pct": 199.3,
+          "irr_pct": 50.5,
+          "maxdd_pct": -33.2,
+          "ret_per_dd": 6.0
+        }
+      }
+    },
+    {
+      "label": "2020-09+ (longer, fewer names)",
+      "start": "2020-09",
+      "months": 70,
+      "schemes": {
+        "btc_only": {
+          "final": 11883,
+          "roi_pct": 69.8,
+          "irr_pct": 18.0,
+          "maxdd_pct": -52.9,
+          "ret_per_dd": 1.32
+        },
+        "eq_10": {
+          "final": 16522,
+          "roi_pct": 136.0,
+          "irr_pct": 29.5,
+          "maxdd_pct": -56.6,
+          "ret_per_dd": 2.4
+        },
+        "eq_17": {
+          "final": 19770,
+          "roi_pct": 182.4,
+          "irr_pct": 35.9,
+          "maxdd_pct": -59.0,
+          "ret_per_dd": 3.09
+        },
+        "eq_25": {
+          "final": 23481,
+          "roi_pct": 235.4,
+          "irr_pct": 42.2,
+          "maxdd_pct": -61.6,
+          "ret_per_dd": 3.82
+        },
+        "eq_40": {
+          "final": 30439,
+          "roi_pct": 334.8,
+          "irr_pct": 51.8,
+          "maxdd_pct": -66.0,
+          "ret_per_dd": 5.08
+        },
+        "ism_pro": {
+          "final": 19029,
+          "roi_pct": 171.8,
+          "irr_pct": 34.6,
+          "maxdd_pct": -60.9,
+          "ret_per_dd": 2.82
+        },
+        "ism_contra": {
+          "final": 20974,
+          "roi_pct": 199.6,
+          "irr_pct": 38.1,
+          "maxdd_pct": -57.4,
+          "ret_per_dd": 3.48
+        }
+      }
+    }
+  ],
+  "notes": "USD; ISM_prev = no-lookahead signal; sleeve=miners+MSTR equal-weight"
+}

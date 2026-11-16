@@ -1,0 +1,57 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "id": "<masked>",
+        "key": "GB-1",
+        "name": "Bonds",
+        "exposure": "STOCKS",
+        "assetClass": "ETF",
+        "targetAllocationPct": 40,
+        "computed": {
+          "unitsTotal": 0,
+          "pricePln": 50,
+          "priceNative": 50,
+          "valuePln": 0,
+          "currentPct": 0,
+          "deviationPct": -1,
+          "equivalentUnits": 0
+        },
+        "subassets": [
+          {
+            "id": "<masked>",
+            "assetId": "<masked>",
+            "isPrimary": true,
+            "ticker": "GB-1",
+            "name": "Bonds B",
+            "exchange": "XTB",
+            "yahooTicker": "GB1.WA",
+            "priceCurrency": "PLN",
+            "unitsIkeTata": 0,
+            "unitsIkeMama": 0,
+            "unitsIkzeTata": 0,
+            "unitsIkzeMama": 0,
+            "unitsInne": 0,
+            "effectiveUnits": 0,
+            "pricePln": 50,
+            "priceNative": 50,
+            "valuePln": 0,
+            "sortOrder": 2
+          }
+        ],
+        "createdAt": "<masked>",
+        "updatedAt": "<masked>"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    },
+    "page": {
+      "number": 1,
+      "size": 1,
+      "total": 2
+    }
+  }
+}

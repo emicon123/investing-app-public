@@ -1,0 +1,83 @@
+# ── Java / Gradle ─────────────────────────────────────────────────────────────
+.gradle/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+!gradle/wrapper/gradle-wrapper.jar
+
+# ── Java / Maven ──────────────────────────────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ── Eclipse ───────────────────────────────────────────────────────────────────
+.classpath
+.factorypath
+.project
+.settings/
+
+# ── Node / npm / pnpm ─────────────────────────────────────────────────────────
+node_modules/
+dist/
+.next/
+.expo/
+*.tsbuildinfo
+
+# ── IntelliJ IDEA ─────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ── VS Code ───────────────────────────────────────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ── Environment & secrets ─────────────────────────────────────────────────────
+.env
+*.env
+.env.*
+!.env.example
+
+# ── MCP server config (local dev only — contains DB URIs and file paths) ─────
+.mcp.json
+
+# ── Claude Code local overrides ───────────────────────────────────────────────
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/worktrees/
+
+# ── TypeScript compile artifacts ──────────────────────────────────────────────
+frontend-web/src/**/*.js
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+
+# ── Host cron job logs (ADR-041 daily asset news) ──────────────────────────────
+infra/news/*.log
+infra/bot/*.log
+infra/bot/*.lock
+
+# ── graphify generated knowledge-graph cache ──────────────────────────────────
+graphify-out/
+
+# ── Go build artifacts (backend-go, apps/*/backend-go, packages/common/go) ────
+backend-go/server
+apps/*/backend-go/server
+*.test
+
+# ── Python backtest venv (task 28 re-runs; local only, never committed) ──
+backtest/.venv/
+
+# ── XTB exports (task 165; personal financial data, never committed) ──
+data/xtb-exports/
+data/binance-exports/
+data/*-exports/
+data/pko/
+*.xlsx

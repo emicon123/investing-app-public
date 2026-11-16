@@ -1,0 +1,12 @@
+/* Shared self-hosted monospace font for numeric/tabular financial figures.
+   Consumed by all three apps (root investing-app, portfolioB, portfolioC) via
+   `@import "@common/ui-primitives/mono-font.css";` — see each app's
+   src/index.css. Centralizing this avoids three copies of the same
+   @fontsource imports and --font-mono token. */
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
+@theme {
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+}

@@ -1,0 +1,17 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "xirrPct": "<masked>",
+      "totalInvestedPln": 950.25,
+      "currentValuePln": 300,
+      "simpleReturnPct": -0.68429361,
+      "yearsElapsed": "<masked>",
+      "computedAt": "<masked>"
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

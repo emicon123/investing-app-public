@@ -1,0 +1,15 @@
+{
+  "status": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALIDATION_ERROR",
+        "message": "Invariant violated: portfolio VARIABLE's asset targetAllocationPct would sum to 95.0000 (expected 100)"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

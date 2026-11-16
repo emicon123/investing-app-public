@@ -1,0 +1,221 @@
+# --- Macro liquidity de-risk state (ADR-042; China/Japan M2 automated per ADR-046) ---
+MacroComponentStatus:
+  type: object
+  description: >
+    Freshness/provenance of one input series feeding the risk-off computation.
+    Lets the UI flag a stale component (e.g. if the chinadata.live or Bank of Japan
+    fetch, or a manual-paste fallback, hasn't updated recently) without gating the
+    read.
+  properties:
+    seriesCode:
+      type: string
+      example: "M2_CN"
+    source:
+      type: string
+      description: >
+        BOJ = Bank of Japan Time-Series Data Search API (M2_JP). CHINADATA =
+        chinadata.live, a third-party aggregator, not PBOC's own site (M2_CN).
+        TRADINGEC/PBC/YCHARTS = ADR-068 scraped tip sources extending M2_CN past
+        the CHINADATA backbone (PBC = PBOC's own site, still tip-only in code).
+        MANUAL = a fallback paste via POST /market-data/macro/m2-manual, used only
+        if the corresponding automated source is broken.
+      enum: [FRED, ECB, BOE, BOJ, CHINADATA, TRADINGEC, PBC, YCHARTS, MANUAL, DERIVED]
+    latestObservationDate:
+      type: string
+      format: date
+    latestValue:
+      type: number
+      format: double
+    stale:
+      type: boolean
+      description: True when this component is older than its expected cadence.
+
+MacroState:
+  type: object
+  description: >
+    Current macro liquidity regime used by the rebalancing de-risk gate. Since ADR-044
+    the gate is a continuous 0→1 blend (blendFactor) that linearly interpolates every
+    MAIN position's target between a risk-on and a risk-off table — it no longer cuts
+    crypto targets by a scalar and redistributes freed weight (ADR-042/043,
+    superseded). Net liquidity is the primary/auto input to the blend; Global M2 is
+    the confirming gauge. All fields are read-only, computed by the scheduled
+    MacroDataService and persisted in macro_state.
+  properties:
+    asOfDate:
+      type: string
+      format: date
+      description: Latest net-liquidity observation date this state was computed against.
+    blendFactor:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 1
+      description: >
+        ADR-044: clip(0.5 + smoothedZ / 0.5, 0, 1) — steepness divisor last changed
+        1.0 to 0.5 by ADR-049; leading-term sign flipped from "-" to "+" by ADR-071.
+        0 = full risk-off, 1 = full risk-on (orientation flipped by ADR-071 — was
+        the reverse under the original ADR-044). Drives per-position target
+        interpolation (target = riskOff × (1−blendFactor) + riskOn × blendFactor).
+        Null while there is insufficient history to compute a smoothed z-score
+        (bootstrap period).
+      example: 0.35
+    zone:
+      readOnly: true
+      oneOf:
+        - type: string
+          enum: [RISK_OFF, MID_OFF, NEUTRAL, MID_ON, RISK_ON]
+        - type: "null"
+      description: >
+        Display-only label computed from blendFactor (not stored):
+        <0.2 RISK_OFF, [0.2,0.4) MID_OFF, [0.4,0.6) NEUTRAL, [0.6,0.8) MID_ON,
+        >=0.8 RISK_ON. Null when blendFactor is null. Thresholds unchanged by
+        ADR-071; only which label sits at which end swapped.
+      example: "MID_OFF"
+    compositeZ:
+      type: [number, "null"]
+      format: double
+      description: >
+        ADR-044: 0.7 × zscore(net-liq YoY accel) + 0.3 × zscore(Global-M2 YoY
+        accel), each an expanding, no-lookahead z-score vs. its own history.
+        Debug telemetry input to smoothedZ/blendFactor.
+    smoothedZ:
+      type: [number, "null"]
+      format: double
+      description: ADR-044. 3-month rolling average of compositeZ. Input to blendFactor.
+    riskOff:
+      type: boolean
+      description: >
+        Legacy binary signal, retained as telemetry (ADR-042):
+        netLiqYoyAccel < 0 AND globalM2YoyAccel < 0. Since ADR-044 this no longer
+        directly gates the rebalancing override — blendFactor does.
+    deriskEnabled:
+      type: boolean
+      description: >
+        Mirrors setting rebalancing.macro_derisk_enabled. When false, every MAIN
+        position sits at its risk-on target regardless of blendFactor — equivalent
+        to pinning blendFactor=1 (ADR-044; numeral flipped by ADR-071, was
+        blendFactor=0 under the original orientation).
+    netLiqLatestUsdMln:
+      type: [number, "null"]
+      format: double
+    netLiqYoy:
+      type: [number, "null"]
+      format: double
+      description: Net-liquidity year-over-year growth (decimal, e.g. -0.04 = −4%).
+    netLiqYoyAccel:
+      type: [number, "null"]
+      format: double
+      description: 3-month change in netLiqYoy. < 0 contributes to risk-off.
+    netLiqRiskOff:
+      type: [boolean, "null"]
+    globalM2LatestUsdMln:
+      type: [number, "null"]
+      format: double
+    globalM2Yoy:
+      type: [number, "null"]
+      format: double
+    globalM2YoyAccel:
+      type: [number, "null"]
+      format: double
+      description: 3-month change in globalM2Yoy. < 0 contributes to risk-off.
+    globalM2RiskOff:
+      type: [boolean, "null"]
+    globalM2Stale:
+      type: boolean
+      description: >
+        True when the China (chinadata.live) / Japan (Bank of Japan) Global-M2
+        components — or a manual-paste fallback for either — are older than their
+        expected monthly cadence (90 days). Signals that globalM2Yoy/
+        globalM2YoyAccel — and therefore compositeZ/blendFactor — are computed
+        against stale data; the legacy riskOff boolean is held rather than
+        re-confirmed in that case. Does not block the blend computation, it is a
+        freshness flag only.
+    components:
+      type: array
+      description: Per-input freshness/provenance (net-liq parts + Global M2 parts).
+      items:
+        $ref: "#/MacroComponentStatus"
+    computedAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+MacroStateResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/MacroState"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+MacroStateHistoryPoint:
+  type: object
+  description: >
+    One persisted `macro_state` row, minimal chart-shape projection (ADR-069) — deliberately
+    smaller than MacroState above, which is the full current-state panel. Backs the Settings
+    page's blend-factor history chart; the frontend merges the series returned by
+    GET /market-data/macro-state/history with a frozen pre-live backtest series
+    (frontend-web/src/lib/macroBlendBacktest.ts), split at the 2026-07-01 live-cutover date
+    (dashed before, solid from).
+  properties:
+    asOfDate:
+      type: string
+      format: date
+      description: macro_state.as_of_date. Never null.
+    blendFactor:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 1
+      description: >
+        Same field/formula as MacroState.blendFactor above. Null only during the bootstrap
+        period (insufficient history for a smoothed z-score).
+      example: 0.31
+    zone:
+      readOnly: true
+      oneOf:
+        - type: string
+          enum: [RISK_OFF, MID_OFF, NEUTRAL, MID_ON, RISK_ON]
+        - type: "null"
+      description: >
+        Derived from blendFactor via the same MacroZone.fromBlendFactor thresholds as
+        MacroState.zone above (not stored). Null iff blendFactor is null.
+      example: "MID_OFF"
+
+MacroStateHistoryListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      description: All persisted macro_state rows, ordered by asOfDate ascending.
+      items:
+        $ref: "#/MacroStateHistoryPoint"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+ManualM2ObservationRequest:
+  type: object
+  description: >
+    Fallback seam to upsert one Global-M2 component observation for China or Japan
+    (ADR-046) if the corresponding automated source (chinadata.live / Bank of Japan
+    API) is broken. Value is in native currency millions — the same convention the
+    automated clients already use after their own ×100 unit correction — and the
+    backend converts to USD when composing GLOBAL_M2. source is recorded as MANUAL.
+  required: [seriesCode, observationDate, value]
+  properties:
+    seriesCode:
+      type: string
+      enum: [M2_CN, M2_JP]
+    observationDate:
+      type: string
+      format: date
+    value:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+      description: M2 level in native-currency millions (CNY for M2_CN, JPY for M2_JP).
+

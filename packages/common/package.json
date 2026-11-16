@@ -1,0 +1,8 @@
+{
+  "name": "shared-app-packages",
+  "private": true,
+  "workspaces": [
+    "ts",
+    "ui"
+  ]
+}

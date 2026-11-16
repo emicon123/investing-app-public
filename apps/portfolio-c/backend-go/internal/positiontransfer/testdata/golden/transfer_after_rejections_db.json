@@ -1,0 +1,51 @@
+{
+  "Positions": [
+    {
+      "Portfolio": "FIXED",
+      "Ticker": "SOLD",
+      "Units": "1.00000000",
+      "TotalSpentPln": "100.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "BUY",
+      "Units": "10.00000000",
+      "TotalSpentPln": "240.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "SIB",
+      "Units": "4.00000000",
+      "TotalSpentPln": "200.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "SOLD",
+      "Units": "7.00000000",
+      "TotalSpentPln": "700.0000"
+    }
+  ],
+  "Legs": [
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "SOLD",
+      "UnitsDelta": "-4.00000000",
+      "PricePln": "100.00000000",
+      "TotalPln": "-400.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "SIB",
+      "UnitsDelta": "4.00000000",
+      "PricePln": "50.00000000",
+      "TotalPln": "200.0000"
+    },
+    {
+      "Portfolio": "VARIABLE",
+      "Ticker": "BUY",
+      "UnitsDelta": "8.00000000",
+      "PricePln": "25.00000000",
+      "TotalPln": "200.0000"
+    }
+  ]
+}

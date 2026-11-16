@@ -1,0 +1,50 @@
+{
+  "status": 201,
+  "body": {
+    "data": {
+      "id": "<masked>",
+      "portfolio": "VARIABLE",
+      "key": "GA-1",
+      "name": "Gold (all)",
+      "exposure": "METALS",
+      "assetClass": "ETF",
+      "targetAllocationPct": 60,
+      "computed": {},
+      "subassets": [
+        {
+          "id": "<masked>",
+          "assetId": "<masked>",
+          "isPrimary": true,
+          "ticker": "GA-2",
+          "name": "Gold A EUR",
+          "exchange": "XTB",
+          "yahooTicker": "GA2.DE",
+          "priceCurrency": "EUR",
+          "units": 3,
+          "effectiveUnits": 3,
+          "sortOrder": 0
+        },
+        {
+          "id": "<masked>",
+          "assetId": "<masked>",
+          "isPrimary": false,
+          "ticker": "GA-1",
+          "name": "Gold A back",
+          "exchange": "XTB",
+          "yahooTicker": "GA1.WA",
+          "priceCurrency": "PLN",
+          "units": 13.5,
+          "effectiveUnits": 13.5,
+          "groupName": "Złoto",
+          "sortOrder": 1
+        }
+      ],
+      "createdAt": "<masked>",
+      "updatedAt": "<masked>"
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

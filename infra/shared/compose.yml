@@ -1,0 +1,43 @@
+# docker-compose v2 — shared Postgres instance for the 3 sibling apps (ADR-083)
+# Run from this directory:
+#   docker compose up -d
+#
+# Deliberately a separate project (`name: shared-infra`) so no single app's own
+# `docker compose down`/`up --build` in infra/ or apps/*/infra/ can ever touch this
+# stack as a side effect — see ADR-083 Decision 1 and docs/architecture/12-*.md.
+
+name: shared-infra
+
+services:
+
+  db-shared:
+    image: postgres:17.11-alpine
+    platform: linux/arm64
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      INVESTING_DB_PASSWORD: ${INVESTING_DB_PASSWORD}
+      PORTFOLIO_B_DB_PASSWORD: ${PORTFOLIO_B_DB_PASSWORD}
+      PORTFOLIO_C_DB_PASSWORD: ${PORTFOLIO_C_DB_PASSWORD}
+    volumes:
+      - db-shared-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - investing-shared
+    mem_limit: 384m
+
+volumes:
+  db-shared-data:
+
+networks:
+  investing-shared:
+    external: true
+    name: investing-shared

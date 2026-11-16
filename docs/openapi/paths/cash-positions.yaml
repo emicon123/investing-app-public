@@ -1,0 +1,71 @@
+collection:
+  get:
+    tags: [cash-positions]
+    summary: Get the most recent cash snapshot
+    operationId: getCashPositions
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: All rows from the latest snapshot (same recordedAt timestamp).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/cash-positions.yaml#/CashPositionsListResponse"
+            example:
+              data:
+                - id: 10
+                  location: "mBank"
+                  amountPln: 15000.0
+                  recordedAt: "2026-06-08T08:00:00Z"
+                - id: 11
+                  location: "portfel"
+                  amountPln: 200.0
+                  recordedAt: "2026-06-08T08:00:00Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440003"
+                timestamp: "2026-06-08T09:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  post:
+    tags: [cash-positions]
+    summary: Record a new cash snapshot
+    operationId: createCashSnapshot
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/cash-positions.yaml#/CreateCashPositionsRequest"
+          example:
+            positions:
+              - location: "mBank"
+                amountPln: 15000.0
+              - location: "portfel"
+                amountPln: 200.0
+              - location: "XTB cash"
+                amountPln: 500.0
+            recordedAt: "2026-06-08T08:00:00Z"
+    responses:
+      "201":
+        description: New snapshot recorded.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/cash-positions.yaml#/CashPositionsListResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

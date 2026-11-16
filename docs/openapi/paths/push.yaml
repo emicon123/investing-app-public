@@ -1,0 +1,170 @@
+config:
+  get:
+    tags: [push]
+    summary: Is Web Push configured, and with which VAPID public key
+    operationId: getPushConfig
+    description: |
+      Never 503: when the VAPID_* variables are not all set this returns `enabled: false`
+      (and no key), and the web UI hides the "Powiadomienia" card (ADR-108 §7).
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: Push configuration for the browser.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/push.yaml#/PushConfigResponse"
+            examples:
+              enabled:
+                value:
+                  data:
+                    enabled: true
+                    vapidPublicKey: "BNbxGYNMhEIi9zrneh7mqV4oUanjLUK3m-mYZBc62frMKrEoMk88r3Lk596T0ck9xlT-ZKHIo2Vf9N8u3tlTeLs"
+                  meta:
+                    requestId: "550e8400-e29b-41d4-a716-446655440080"
+                    timestamp: "2026-10-27T08:00:00Z"
+              disabled:
+                value:
+                  data:
+                    enabled: false
+                  meta:
+                    requestId: "550e8400-e29b-41d4-a716-446655440081"
+                    timestamp: "2026-10-27T08:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+subscriptions:
+  post:
+    tags: [push]
+    summary: Store (or refresh) this browser's push subscription
+    operationId: upsertPushSubscription
+    description: |
+      Idempotent upsert on `endpoint`: a repeat call refreshes keys, owner (the caller's JWT
+      principal), device label (derived from `User-Agent`) and `updatedAt`. The web client
+      calls it after `PushManager.subscribe()` and again on every Settings visit while
+      subscribed, which also restores a row the backend pruned. Always 200 (create and
+      refresh are indistinguishable to the client by design).
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/push.yaml#/UpsertPushSubscriptionRequest"
+          example:
+            endpoint: "https://fcm.googleapis.com/fcm/send/dpH5lCsTSSM:APA91bHqjZxM0VImWWqDRN7U0a3AycjUf4O-byuxb_wJsKRaKvV_iKw56s16ekq6FUqoCF7k2nICUpd8fHPxVTgqLunFeVeB9lLCQZyohyAztTH8ZQL9WCxKpA6dvTG_TUIhQUFq_n"
+            keys:
+              p256dh: "BIPUL12DLfytvTajnryr2PRdAgXS3HGKiLqndGcJGabyhHheJYlNGCeXl1dn18gSJ1WAkAPIxr4gK0_dQds4yiI"
+              auth: "FPssNDTKnInHVndSTdbKFw"
+    responses:
+      "200":
+        description: Subscription stored or refreshed.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/push.yaml#/PushSubscriptionResponse"
+            example:
+              data:
+                id: 3
+                deviceLabel: "Android · Chrome"
+                createdAt: "2026-10-27T08:01:00Z"
+                updatedAt: "2026-10-27T08:01:00Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440082"
+                timestamp: "2026-10-27T08:01:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "422":
+        description: Malformed body, non-https endpoint, or endpoint host not on the push-service allowlist.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+            example:
+              errors:
+                - code: VALIDATION_ERROR
+                  field: endpoint
+                  message: "endpoint host is not a known push service"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440083"
+                timestamp: "2026-10-27T08:01:00Z"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../components/responses.yaml#/PushNotConfigured"
+  delete:
+    tags: [push]
+    summary: Forget this browser's push subscription
+    operationId: deletePushSubscription
+    description: |
+      The endpoint travels in the JSON body, never in the path or query string — it is a
+      capability URL and URLs land in nginx access logs (ADR-108 §7). Idempotent: an unknown
+      endpoint is still 204. Works even when push is not configured, so a device can always
+      clean up.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/push.yaml#/DeletePushSubscriptionRequest"
+          example:
+            endpoint: "https://fcm.googleapis.com/fcm/send/dpH5lCsTSSM:APA91bHqjZxM0VImWWqDRN7U0a3AycjUf4O-byuxb_wJsKRaKvV_iKw56s16ekq6FUqoCF7k2nICUpd8fHPxVTgqLunFeVeB9lLCQZyohyAztTH8ZQL9WCxKpA6dvTG_TUIhQUFq_n"
+    responses:
+      "204":
+        description: Subscription removed (or was never stored).
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+testNotifications:
+  post:
+    tags: [push]
+    summary: Send a test notification to the caller's own devices
+    operationId: sendTestPushNotification
+    description: |
+      Command behind the "Wyślij testowe powiadomienie" button. Sends
+      `Powiadomienie testowe` / `Powiadomienia działają na tym urządzeniu.` (tag `push-test`,
+      TTL 300 s, opens `/news`) to every subscription whose owner is the caller's JWT
+      principal — never to the other allowlisted user's devices. No request body. A caller
+      with no subscriptions gets 200 with all counts 0.
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: Fan-out report (2xx from the push service ≠ shown on screen).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/push.yaml#/PushDeliveryReportResponse"
+            example:
+              data:
+                attempted: 1
+                delivered: 1
+                pruned: 0
+                failed: 0
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440084"
+                timestamp: "2026-10-27T08:02:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../components/responses.yaml#/PushNotConfigured"

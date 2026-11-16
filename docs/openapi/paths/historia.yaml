@@ -1,0 +1,48 @@
+collection:
+  get:
+    tags: [historia]
+    summary: Daily portfolio value snapshots
+    operationId: listHistoria
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: portfolio
+        in: query
+        description: Absent (or ALL, case-insensitive) returns both portfolios merged, date ASC.
+        schema:
+          type: string
+          enum: [MAIN, RETIREMENT, ALL]
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 50
+    responses:
+      "200":
+        description: Paginated daily snapshots with computed returnPct and profitPln.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/historia.yaml#/HistoriaPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

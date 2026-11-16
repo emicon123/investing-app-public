@@ -1,0 +1,507 @@
+# --- Positions (task 156: assets + subassets) ---
+PositionComputed:
+  type: object
+  description: >
+    Group-level computed fields, resolved at query time from live prices and the
+    current macro blend state; never stored. `valuePln` = Σ over the asset's priced
+    subassets; `unitsTotal`/`pricePln`/`priceNative` describe the primary subasset;
+    `profitPct`, `avgBuyPricePln`, `avgBuyPriceNative`, `equivalentUnits` and
+    `costlessSubassets` are the asset-level cost group (task 161): they read the
+    SUM of the recorded costs (`totalSpentPln > 0`) over all subassets of the asset —
+    never a single row's cost and never the stored `avgBuyPrice` — and are all null
+    (or omitted) when no cost is recorded. Every field is optional/nullable; a client
+    treats an absent field as null.
+  properties:
+    unitsTotal:
+      type: [number, "null"]
+      format: double
+    pricePln:
+      type: [number, "null"]
+      format: double
+    priceNative:
+      type: [number, "null"]
+      format: double
+      description: >
+        pricePln converted back to the primary subasset's native priceCurrency via the
+        current FX rate. Null whenever pricePln or the FX rate is unavailable.
+    valuePln:
+      type: [number, "null"]
+      format: double
+    currentPct:
+      type: [number, "null"]
+      format: double
+    deviationPct:
+      type: [number, "null"]
+      format: double
+      description: >
+        `(currentPct / effectiveTargetAllocationPct) − 1`. Uses the same
+        effectiveTargetAllocationPct value below as its denominator — the two fields
+        never disagree about which target is "the" target.
+
+
+        Exception (ADR-053): when effectiveTargetAllocationPct is non-null and exactly
+        0 while currentPct is > 0 (the asset holds nonzero value against an explicit
+        zero target, e.g. CHFPLN=X after ADR-050 retired it to a 0.0/0.0 risk-on/risk-off
+        target while keeping the row and its holding), the formula above is undefined
+        (division by zero) and this field instead returns a fixed sentinel, 1.0. Any
+        holding at all against a hard zero target is unambiguously in excess, so a
+        constant flag value is used rather than an unbounded number that would scale
+        with how much is held — the severity signal here is binary (hold something →
+        flag it), not continuous. 1.0 was chosen because it renders as a clean, bounded
+        "+100%" in a naive `(deviationPct * 100).toFixed(0)` display and safely exceeds
+        the 0.5 "SELL" threshold `frontend-web` uses. Assets with a null
+        effectiveTargetAllocationPct (null-target assets such as ALGO-USD/FISV/GME) are
+        unaffected and keep this field null, exactly as before.
+    effectiveTargetAllocationPct:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 100
+      description: >
+        The target allocation actually used for rebalancing right now — i.e. the same
+        value `deviationPct` divides by, exposed as its own field (added 2026-07-06;
+        previously computed internally by PositionService but never surfaced, which is
+        why the UI could show a stale-looking raw target while deviationPct quietly
+        used a different blended number).
+
+        For a RETIREMENT asset, a MAIN asset when
+        `rebalancing.macro_derisk_enabled = false`, or any asset with a null
+        `targetAllocationPct`: this equals `targetAllocationPct` exactly (null stays
+        null — it is never coerced to 0, even though the internal macro-override map
+        does that substitution elsewhere for bookkeeping reasons that must not leak
+        into this field).
+
+        For a MAIN asset with a non-null `targetAllocationPct` while the gate is
+        enabled: `riskOff × (1 − blendFactor) + riskOn × blendFactor`, where `riskOn`
+        = `targetAllocationPct`, `riskOff` = `targetAllocationPctRiskOff` (falling back
+        to `riskOn` when null), and `blendFactor` is the latest
+        `GET /market-data/macro-state` value (0 = full risk-off, 1 = full risk-on —
+        orientation flipped by ADR-071; a missing macro_state row is treated as
+        `blendFactor = 1`, i.e. full risk-on — identical to today's
+        `targetAllocationPct`; was `blendFactor = 0` under the original ADR-044
+        orientation).
+    profitPct:
+      type: [number, "null"]
+      format: double
+      description: >
+        Asset-level profit as a fraction (0.1 = +10 %): `Σvalue / Σcost − 1`, where
+        Σcost = Σ `totalSpentPln` over the asset's subassets whose `totalSpentPln` is
+        > 0, and Σvalue = Σ `effectiveUnits × pricePln` over EVERY priced subasset,
+        including those with no recorded cost (the go-live import stored the whole
+        group's cost on the head row, so a cost-less wrapper's value belongs to the
+        same cost). A subasset with a recorded cost but no price contributes neither
+        its cost nor a value. Null when Σcost ≤ 0 (no cost recorded — e.g. every
+        portfolio-b asset today) or when the primary is unpriced. Independent of which
+        subasset is primary. Computed identically for MAIN and RETIREMENT assets
+        (ADR-104, 2026-10-18, lifted ADR-056's RETIREMENT null-out once RETIREMENT's
+        reviewed cost baselines existed).
+    avgBuyPricePln:
+      type: [number, "null"]
+      format: double
+      description: >
+        The asset's ENTRY PRICE in PLN per 1 unit of the PRIMARY subasset:
+        `pricePln / (1 + profitPct)` = `Σcost / (Σvalue / pricePln)`, so
+        `avgBuyPricePln × equivalentUnits = Σcost` and
+        `pricePln / avgBuyPricePln − 1 = profitPct`. Equivalence of non-primary holdings
+        is measured at today's prices (no history). Derived from the recorded costs;
+        NOT computed from the stored `avgBuyPrice` and NOT `avgBuyPrice × fxRate`.
+        Null whenever `profitPct` is null, when the primary is unpriced, or when
+        `profitPct` is −1. Changing the primary re-expresses the same cost in the new
+        primary's terms (`entry(P′) / entry(P) = price(P′) / price(P)`). Not stored.
+    avgBuyPriceNative:
+      type: [number, "null"]
+      format: double
+      description: >
+        The entry price in the PRIMARY subasset's own `priceCurrency`:
+        `avgBuyPricePln / fx` where fx is the CURRENT PLN rate of that currency (the
+        same rate `priceNative = pricePln / fx` uses) = `priceNative / (1 + profitPct)`.
+        The PLN cost is fixed, so this line moves with the current exchange rate by
+        design (owner rule: "the average price in USD is the PLN average divided by the
+        current dollar rate"). Equals `avgBuyPricePln` when `priceCurrency` is PLN. Null
+        whenever `avgBuyPricePln` is null (Σcost ≤ 0, unpriced primary) or
+        the FX rate is unavailable. Not stored. Never derived from the stored
+        `avgBuyPrice`.
+    equivalentUnits:
+      type: [number, "null"]
+      format: double
+      description: >
+        Primary-equivalent units `valuePln / pricePln`: what the asset's holdings in
+        ALL subassets are worth today in units of the primary (0.12 BTC for 0.1 BTC
+        plus an ETN worth 0.02 BTC). The quantity the entry price averages the cost
+        over: `avgBuyPricePln × equivalentUnits = Σcost`. Optional; present whenever
+        the primary is priced (independent of whether any cost is recorded), null
+        otherwise.
+    costlessSubassets:
+      type: array
+      items:
+        type: string
+      description: >
+        Tickers (`Subasset.ticker`) of the asset's priced subassets that hold units but
+        have no recorded cost (`totalSpentPln` null or ≤ 0), listed only when an entry
+        price is computed (Σcost > 0). Their baseline is assumed to sit inside a
+        sibling's group-level cost — the known limitation of the entry price: a
+        subasset bought without its cost being entered inflates `profitPct` and lowers
+        the entry price. Optional; omitted (or empty) when there are none.
+
+Asset:
+  type: object
+  description: >
+    One logical asset (task 156): the group root carrying targets, exposure and asset
+    class, with group-level computed fields (valuePln = Σ subassets, deviationPct on
+    the asset) and the member subassets, primary first. Unique on (key, portfolio).
+  required: [id, key, name, portfolio, exposure, assetClass]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    key:
+      type: string
+      description: >
+        Stable logical slug, unique per portfolio (e.g. `bitcoin`, `gold`; a single-holding
+        asset uses its holding's ticker). Never derive it from a subasset ticker — the
+        primary can change.
+    name:
+      type: string
+      maxLength: 200
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    exposure:
+      type: string
+      description: Economic theme (CRYPTO, METALS, BONDS, EXPERIMENTS, EQUITY, ...).
+    assetClass:
+      $ref: "./enums.yaml#/AssetClass"
+    targetAllocationPct:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 100
+      description: >
+        Risk-on-regime target allocation pct (blend=1, ADR-071 — was blend=0 under
+        the original ADR-044 orientation). Since ADR-044, MAIN assets' effective
+        rebalancing target interpolates this with targetAllocationPctRiskOff via the
+        macro blend factor (GET /market-data/macro-state); this stored value is the
+        risk-on endpoint of that interpolation, not necessarily the value actually
+        used to plan the next purchase session. This is also the value the "Cel %"
+        inline editor mutates via PUT /assets/{id} — see
+        computed.effectiveTargetAllocationPct for the actual blended number to display
+        as "the" target.
+    targetAllocationPctRiskOff:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 100
+      description: >
+        Risk-off-regime target allocation pct (blend=0, ADR-071 — was blend=1 under
+        the original ADR-044 orientation), added ADR-044. Null means
+        "identical to targetAllocationPct" (most assets — gold, the Experiments sleeve
+        — do not move between regimes). Never read for RETIREMENT assets.
+    computed:
+      $ref: "#/PositionComputed"
+    subassets:
+      type: array
+      items:
+        $ref: "#/Subasset"
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+    updatedAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+Subasset:
+  type: object
+  description: One concrete holding within an asset (one positions row, task 156).
+  required: [id, assetId, ticker, name, portfolio, exchange, priceCurrency, purchaseCurrency]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    assetId:
+      type: integer
+      format: int64
+      readOnly: true
+    isPrimary:
+      type: boolean
+      description: Exactly one subasset per asset is primary = default buy destination.
+    ticker:
+      type: string
+      maxLength: 20
+    name:
+      type: string
+      maxLength: 200
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    exchange:
+      $ref: "./enums.yaml#/Exchange"
+    assetClass:
+      $ref: "./enums.yaml#/AssetClass"
+    priceCurrency:
+      $ref: "./enums.yaml#/Currency"
+    purchaseCurrency:
+      $ref: "./enums.yaml#/Currency"
+    unitsIke:
+      type: [number, "null"]
+      format: double
+    unitsIkze:
+      type: [number, "null"]
+      format: double
+    unitsRegularEur:
+      type: [number, "null"]
+      format: double
+    unitsRegularUsd:
+      type: [number, "null"]
+      format: double
+    unitsRegularPln:
+      type: [number, "null"]
+      format: double
+    totalSpentPln:
+      type: [number, "null"]
+      format: double
+      description: >
+        This row's cost slot in PLN — a storage value, NOT a per-row cost basis: only
+        the SUM over the asset's subassets is meaningful (the go-live cost of a whole
+        group sits on the row that was head at import, and a sale re-scales every row
+        that carries cost). Null = no cost recorded on this row (a sibling's group
+        cost covers it, or the asset is untracked); 0 = the asset was sold out.
+        Clients show cost and entry price at asset level only
+        (`computed.avgBuyPricePln` / `computed.avgBuyPriceNative`), never a per-row
+        average. Maintained by trades; a units edit never changes it.
+    avgBuyPrice:
+      type: [number, "null"]
+      format: double
+      deprecated: true
+      description: >
+        DEPRECATED. The native-currency average from the go-live import, stale ever
+        since: no trade writes it, no computation or UI reads it. The entry price is
+        `computed.avgBuyPricePln` / `computed.avgBuyPriceNative`, derived from the
+        recorded costs. Kept in the DTO for compatibility; to be dropped.
+    yahooTicker:
+      type: [string, "null"]
+    companyBacked:
+      type: boolean
+      default: true
+      description: >
+        Added ADR-064, semantics broadened by ADR-079. True when the asset has its own
+        distinguishable, individually-researchable narrative — a company's own events
+        (earnings, product launches, partnerships, hacks, leadership, listings,
+        legal/regulatory actions) for company-backed assets, OR protocol/asset-intrinsic
+        events for leaderless assets (protocol upgrades/proposals, governance debates, hard
+        forks, network security incidents, hash-rate/on-chain/large-holder activity) — e.g.
+        BTC-USD is true despite having no company or foundation behind it. False only for
+        basket/index/commodity ETF vehicles and currency rows, which have no narrative of
+        their own distinguishable from their underlying holdings/rate. This is the sole gate
+        for the nightly news-research
+        job's asset scope (GET /news/assets).
+    pricePln:
+      type: [number, "null"]
+      format: double
+    priceNative:
+      type: [number, "null"]
+      format: double
+    valuePln:
+      type: [number, "null"]
+      format: double
+    effectiveUnits:
+      type: [number, "null"]
+      format: double
+
+CreatePositionRequest:
+  type: object
+  description: >
+    Creates one concrete subasset holding (task 156): either under an existing asset
+    (`assetId`) or under a brand-new asset (`newAsset` carrying the targets — targets
+    never live on the subasset row). Exactly one of `assetId` / `newAsset` is
+    required. A top-level `targetAllocationPct` key here is rejected with 400.
+  required: [ticker, name, portfolio, exchange, assetClass, priceCurrency, purchaseCurrency]
+  properties:
+    ticker:
+      type: string
+      maxLength: 20
+    name:
+      type: string
+      maxLength: 200
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    exchange:
+      $ref: "./enums.yaml#/Exchange"
+    assetClass:
+      $ref: "./enums.yaml#/AssetClass"
+    exposure:
+      type: [string, "null"]
+    priceCurrency:
+      $ref: "./enums.yaml#/Currency"
+    purchaseCurrency:
+      $ref: "./enums.yaml#/Currency"
+    assetId:
+      type: [integer, "null"]
+      format: int64
+    isPrimary:
+      type: [boolean, "null"]
+      description: Set true when joining an asset that transiently has no primary; rejected when it already has one. Always true for a new asset's first subasset.
+    newAsset:
+      oneOf:
+        - $ref: "#/NewAssetRequest"
+        - type: "null"
+    yahooTicker:
+      type: [string, "null"]
+    companyBacked:
+      type: [boolean, "null"]
+      description: >
+        Added ADR-064, semantics broadened by ADR-079 ("has its own distinguishable,
+        individually-researchable narrative" — not necessarily a company/team/foundation;
+        e.g. BTC-USD is true via protocol-level news despite being leaderless). Optional —
+        when omitted (null), the backend derives it from assetClass: STOCK/CRYPTO -> true,
+        ETF/CURRENCY -> false. Pass explicitly to override when an asset's class-level
+        default doesn't match its actual narrative.
+
+NewAssetRequest:
+  type: object
+  description: >
+    Inline asset payload for POST /positions without assetId (task 156): creates a new
+    asset (targets live here, never on the subasset row) with this subasset as its first
+    — trivially primary — member.
+  required: [name, exposure, assetClass]
+  properties:
+    name:
+      type: string
+      maxLength: 200
+    exposure:
+      type: string
+    assetClass:
+      $ref: "./enums.yaml#/AssetClass"
+    targetAllocationPct:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 100
+    targetAllocationPctRiskOff:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 100
+      description: Risk-off-regime target (ADR-044). Null means "identical to targetAllocationPct". Never read for RETIREMENT assets.
+
+UpdatePositionRequest:
+  type: object
+  description: >
+    Subasset-owned fields only (task 156); all fields optional, null fields are
+    skipped. Targets live on the parent asset — a `targetAllocationPct` /
+    `targetAllocationPctRiskOff` key here is rejected with 400 (edit via
+    PUT /assets/{id} instead).
+  properties:
+    assetId:
+      type: integer
+      format: int64
+      description: >
+        Re-home this subasset under another asset (non-primary only; same portfolio;
+        ignored when equal to the current asset). A primary subasset cannot be re-homed
+        (409 — set another primary first, or delete and re-create it under the target
+        asset); an unknown asset is 404; an asset of another portfolio is 400 (field
+        `assetId`). No units, cost basis, targets or tickers move; `isPrimary` stays false.
+    name:
+      type: [string, "null"]
+      maxLength: 200
+    assetClass:
+      oneOf:
+        - $ref: "./enums.yaml#/AssetClass"
+        - type: "null"
+    yahooTicker:
+      type: [string, "null"]
+    unitsIke:
+      type: [number, "null"]
+      format: double
+    unitsIkze:
+      type: [number, "null"]
+      format: double
+    unitsRegularEur:
+      type: [number, "null"]
+      format: double
+    unitsRegularUsd:
+      type: [number, "null"]
+      format: double
+    unitsRegularPln:
+      type: [number, "null"]
+      format: double
+    totalSpentPln:
+      type: [number, "null"]
+      format: double
+      description: >
+        Explicit correction of this row's cost slot in PLN — the only way a manual
+        edit changes cost (the reviewed correction path; a units edit alone NEVER
+        changes cost, so editing units up without cost lowers the entry price). Only
+        the sum over the asset's subassets is meaningful, see `Subasset.totalSpentPln`.
+        Null = unchanged.
+    avgBuyPrice:
+      type: [number, "null"]
+      format: double
+      deprecated: true
+      description: >
+        DEPRECATED, see `Subasset.avgBuyPrice`: still accepted and stored, but nothing
+        reads it. Null = unchanged.
+    companyBacked:
+      type: [boolean, "null"]
+      description: >
+        Added ADR-064, semantics broadened by ADR-079. Null = unchanged. Corrects a
+        companyBacked misclassification after creation — e.g. a leaderless-but-newsworthy
+        asset that should be true (BTC-USD's own case, already corrected by V58), or the
+        reverse — without a code change.
+
+UpdateAssetRequest:
+  type: object
+  description: >
+    Asset-level fields (task 156) — the only writer of targets. An omitted key leaves the
+    stored value unchanged; an explicit JSON `null` on a target CLEARS it (NULL = no target,
+    distinct from 0 = explicit zero target, ADR-053). Each non-null target must be within
+    0..100 (400 otherwise). There is deliberately NO portfolio Σ == 100 check here —
+    partial sums must stay editable (the UI's Σ indicator relies on it); Σ == 100 is only
+    enforced as the set-primary tripwire.
+  properties:
+    targetAllocationPct:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 100
+    targetAllocationPctRiskOff:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 100
+      description: Risk-off-regime target (ADR-044); ignored for RETIREMENT assets.
+    name:
+      type: [string, "null"]
+      maxLength: 200
+
+SetAssetPrimaryRequest:
+  type: object
+  required: [subassetId]
+  properties:
+    subassetId:
+      type: integer
+      format: int64
+      description: The subasset row id becoming the asset's primary (must belong to the asset).
+
+AssetsPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/Asset"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+AssetSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/Asset"
+    meta:
+      $ref: "./common.yaml#/Meta"

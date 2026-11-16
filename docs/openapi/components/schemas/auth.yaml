@@ -1,0 +1,32 @@
+# --- Auth ---
+TokenExchangeRequest:
+  type: object
+  required: [googleIdToken]
+  properties:
+    googleIdToken:
+      type: string
+      description: |
+        Short-lived Google ID token obtained from Google Sign-In
+        (Google Identity Platform). The backend validates its signature
+        via Google's JWK URI and checks the `aud` and `email` claims.
+      example: "eyJhbGciOiJSUzI1NiIsImtpZCI6Ii4uLiJ9..."
+
+TokenExchangeResponse:
+  type: object
+  required: [token, expiresAt]
+  properties:
+    token:
+      type: string
+      description: |
+        Backend-issued JWT signed with HMAC-SHA256. Use as
+        `Authorization: Bearer <token>` on all subsequent API requests.
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    expiresAt:
+      type: string
+      format: date-time
+      description: |
+        ISO 8601 UTC timestamp when the backend JWT expires.
+        Default lifetime is 30 days from issuance
+        (`app.security.jwt-expiry-days`).
+      example: "2026-07-10T12:00:00Z"
+

@@ -1,0 +1,264 @@
+list:
+  get:
+    tags: [news]
+    summary: Get the asset news feed for a day
+    operationId: listNews
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: date
+        in: query
+        description: ISO date (YYYY-MM-DD). Defaults to the latest date that has news.
+        schema:
+          type: string
+          format: date
+    responses:
+      "200":
+        description: News items for the requested (or latest) day, one per researched asset.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/news.yaml#/NewsListResponse"
+            example:
+              data:
+                - id: 101
+                  ticker: "MSTR"
+                  assetName: "MicroStrategy"
+                  headline: "MicroStrategy adds 3,000 BTC to corporate treasury"
+                  summary: |
+                    MicroStrategy disclosed a new purchase funded by an at-the-market equity
+                    offering, extending its multi-year accumulation strategy. The filing
+                    confirmed the company's average cost basis and updated total holdings.
+                  sentiment: "POSITIVE"
+                  sources:
+                    - title: "Watcher Guru"
+                      url: "https://watcher.guru/news/example-article"
+                  newsDate: "2026-06-17"
+                  createdAt: "2026-06-17T00:01:12Z"
+                  updatedAt: "2026-06-17T00:01:12Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440010"
+                timestamp: "2026-06-17T09:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+dates:
+  get:
+    tags: [news]
+    summary: List all dates that have news (for the history picker)
+    operationId: listNewsDates
+    security:
+      - bearerAuth: []
+    responses:
+      "200":
+        description: Distinct news dates, most recent first.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/news.yaml#/NewsDatesListResponse"
+            example:
+              data: ["2026-06-17", "2026-06-16", "2026-06-15"]
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440011"
+                timestamp: "2026-06-17T09:00:00Z"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+assets:
+  get:
+    tags: [news]
+    summary: List MAIN-portfolio assets to research (machine-only)
+    operationId: listNewsAssets
+    description: |
+      Called by the nightly host cron job (`infra/news/news-research.sh`), not by any
+      user-facing client. Returns MAIN-portfolio, non-companion positions with
+      `companyBacked = true` (ADR-064, semantics broadened by ADR-079: "has its own
+      distinguishable, individually-researchable narrative" — a company/team/foundation is
+      one way to have that, but not the only way). Excludes PLN cash, `CHFPLN=X`, and all
+      ETF-class basket/index/bond vehicles (e.g. gold, NASDAQ/China index trackers) — these
+      have no narrative distinguishable from their underlying holdings. Includes leaderless
+      protocol-level assets such as `BTC-USD` (ADR-079 — protocol upgrades, governance
+      debates, hard forks, hash-rate/on-chain activity are all researchable BTC-specific
+      news even with no company behind it). Each asset carries `recentHistory` (ADR-079) —
+      up to `app.news.history-lookback-days` (default 7) days of its own past
+      headline/summary/date, so the research prompt can avoid re-reporting an ongoing story.
+      Requires the `X-Service-Token` header — NOT the Google-JWT bearer token used elsewhere
+      (ADR-041).
+    security:
+      - serviceTokenAuth: []
+    responses:
+      "200":
+        description: Assets the host script should research tonight.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/news.yaml#/NewsAssetsListResponse"
+            example:
+              data:
+                - ticker: "SUI-USDT"
+                  assetName: "Sui"
+                  recentHistory: []
+                - ticker: "BTC-USD"
+                  assetName: "Bitcoin"
+                  recentHistory:
+                    - newsDate: "2026-08-20"
+                      headline: "Bitcoin Core devs debate BIP-110 opcode activation timeline"
+                      summary: |
+                        A subset of Bitcoin Core contributors proposed accelerating BIP-110
+                        review after weeks of mailing-list debate. No consensus on
+                        activation height yet; discussion continues on the next scheduled
+                        dev call.
+                - ticker: "MSTR"
+                  assetName: "MicroStrategy"
+                  recentHistory: []
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440012"
+                timestamp: "2026-06-17T00:00:00Z"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+            example:
+              errors:
+                - code: UNAUTHORIZED
+                  message: "X-Service-Token missing or invalid"
+              meta:
+                requestId: "00000000-0000-0000-0000-000000000000"
+                timestamp: "2026-06-17T00:00:00Z"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+ingest:
+  post:
+    tags: [news]
+    summary: Upsert a batch of researched news items (machine-only)
+    operationId: ingestNews
+    description: |
+      Called by the nightly host cron job after `claude -p --allowedTools WebSearch`
+      produces the day's research. Upserts on `(ticker, newsDate)` — re-ingesting the
+      same day refreshes existing rows rather than duplicating them. Requires the
+      `X-Service-Token` header — NOT the Google-JWT bearer token used elsewhere (ADR-041).
+    security:
+      - serviceTokenAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/news.yaml#/IngestNewsRequest"
+          example:
+            items:
+              - ticker: "MSTR"
+                assetName: "MicroStrategy"
+                headline: "MicroStrategy adds 3,000 BTC to corporate treasury"
+                summary: |
+                  MicroStrategy disclosed a new purchase funded by an at-the-market equity
+                  offering, extending its multi-year accumulation strategy. The filing
+                  confirmed the company's average cost basis and updated total holdings.
+                sentiment: "POSITIVE"
+                sources:
+                  - title: "Watcher Guru"
+                    url: "https://watcher.guru/news/example-article"
+                newsDate: "2026-06-17"
+    responses:
+      "200":
+        description: Items upserted.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/news.yaml#/IngestNewsResponse"
+            example:
+              data:
+                upserted: 12
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440013"
+                timestamp: "2026-06-17T00:01:30Z"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+
+notifications:
+  post:
+    tags: [news]
+    summary: Push the morning report outcome to every subscribed device (machine-only)
+    operationId: notifyNewsReport
+    description: |
+      Called exactly once per run by `infra/news/news-research.sh` (all four outcomes,
+      including failures) — the script is the only component that sees empty and failed
+      nights (ADR-108 §2). The backend maps the outcome to the fixed Polish copy and
+      Urgency (READY normal, NO_NEWS/NO_ASSETS low, FAILED high), tag `news-report`,
+      TTL 12 h, click-through `/news`, and fans out to ALL rows of `push_subscriptions`.
+      Best-effort: push-service failures are counted in the report, never an HTTP error;
+      the script logs the result and never changes its own exit code. Requires the
+      `X-Service-Token` header — a bearer JWT gets 401, same as `/news/ingest`.
+    security:
+      - serviceTokenAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/news.yaml#/NotifyNewsReportRequest"
+          examples:
+            ready:
+              value:
+                outcome: READY
+                newsDate: "2026-10-27"
+                itemCount: 7
+            failed:
+              value:
+                outcome: FAILED
+                newsDate: "2026-10-27"
+    responses:
+      "200":
+        description: Fan-out report.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/push.yaml#/PushDeliveryReportResponse"
+            example:
+              data:
+                attempted: 2
+                delivered: 1
+                pruned: 1
+                failed: 0
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440085"
+                timestamp: "2026-10-27T04:21:00Z"
+      "401":
+        description: Missing or invalid X-Service-Token header.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+            example:
+              errors:
+                - code: UNAUTHORIZED
+                  message: "X-Service-Token missing or invalid"
+              meta:
+                requestId: "00000000-0000-0000-0000-000000000000"
+                timestamp: "2026-10-27T04:21:00Z"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../components/responses.yaml#/PushNotConfigured"

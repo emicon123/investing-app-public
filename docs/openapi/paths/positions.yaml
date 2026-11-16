@@ -1,0 +1,443 @@
+collection:
+  get:
+    tags: [positions]
+    summary: List all positions
+    operationId: listPositions
+    description: >
+      Returns one asset per group (task 156), not one row per positions row: each
+      asset carries its targets, group-level computed fields (`valuePln` = Σ
+      subassets) and the member subassets, primary first.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: portfolio
+        in: query
+        schema:
+          $ref: "../components/schemas/enums.yaml#/Portfolio"
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 100
+      - name: sort
+        in: query
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Paginated asset list with live computed fields.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/positions.yaml#/AssetsPagedResponse"
+            example:
+              data:
+                - id: 1
+                  key: "BTC-USD"
+                  name: "Bitcoin"
+                  portfolio: "MAIN"
+                  exposure: "CRYPTO"
+                  assetClass: "CRYPTO"
+                  targetAllocationPct: 20.0
+                  targetAllocationPctRiskOff: 12.0
+                  subassets:
+                    - id: 11
+                      assetId: 1
+                      isPrimary: true
+                      portfolio: "MAIN"
+                      ticker: "BTC-USD"
+                      name: "Bitcoin"
+                      exchange: "XTB"
+                      priceCurrency: "USD"
+                      purchaseCurrency: "PLN"
+                      unitsIke: 0.0
+                      unitsIkze: 0.0
+                      unitsRegularEur: 0.0
+                      unitsRegularUsd: 0.1
+                      unitsRegularPln: 0.0
+                      totalSpentPln: 60000.0
+                      companyBacked: true
+                      effectiveUnits: 0.1
+                      pricePln: 480000.0
+                      priceNative: 120000.0
+                      valuePln: 48000.0
+                    - id: 12
+                      assetId: 1
+                      isPrimary: false
+                      portfolio: "MAIN"
+                      ticker: "PL.ETNVIRBTCP"
+                      name: "Bitcoin Prime"
+                      exchange: "XTB"
+                      priceCurrency: "PLN"
+                      purchaseCurrency: "PLN"
+                      unitsIke: 200.0
+                      companyBacked: false
+                      effectiveUnits: 200.0
+                      pricePln: 48.0
+                      priceNative: 48.0
+                      valuePln: 9600.0
+                  # Entry price worked example: cost 60000 sits on the head row (the ETN's
+                  # baseline is inside it), V = 48000 + 9600 = 57600, profitPct = 57600/60000 - 1,
+                  # avgBuyPricePln = 480000 / 0.96, native = PLN / fx (USDPLN 4.0),
+                  # equivalentUnits = 57600 / 480000, and avgBuyPricePln * equivalentUnits = 60000.
+                  computed:
+                    unitsTotal: 0.1
+                    pricePln: 480000.0
+                    priceNative: 120000.0
+                    valuePln: 57600.0
+                    currentPct: 28.5
+                    deviationPct: 0.425
+                    effectiveTargetAllocationPct: 20.0
+                    profitPct: -0.04
+                    avgBuyPricePln: 500000.0
+                    avgBuyPriceNative: 125000.0
+                    equivalentUnits: 0.12
+                    costlessSubassets: ["PL.ETNVIRBTCP"]
+                  createdAt: "2024-01-15T10:00:00Z"
+                  updatedAt: "2026-06-08T09:00:00Z"
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440000"
+                timestamp: "2026-06-08T09:00:00Z"
+              page:
+                number: 0
+                size: 20
+                total: 30
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  post:
+    tags: [positions]
+    summary: Create a new subasset (optionally under a brand-new asset)
+    operationId: createPosition
+    description: >
+      Creates one concrete subasset holding (task 156): either under an existing
+      asset (`assetId`) or under a brand-new asset (`newAsset` carrying the targets —
+      targets never live on the subasset row). A new asset's first subasset is
+      trivially primary. A top-level `targetAllocationPct` key here is rejected with
+      400 — pass targets inside `newAsset` or edit via PUT /assets/{id}.
+      Task 173: if the natural key matches a soft-deleted subasset (or `newAsset`'s key
+      a soft-deleted asset), that row is restored instead of inserted. It keeps the same
+      id, units, cost basis and history; required fields are overwritten, optional ones
+      are kept unless sent. 409 only for a live duplicate.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/positions.yaml#/CreatePositionRequest"
+          example:
+            ticker: "PL.ETNVIRBTCP"
+            name: "Bitcoin Prime"
+            portfolio: "MAIN"
+            exchange: "XTB"
+            assetClass: "ETF"
+            priceCurrency: "PLN"
+            purchaseCurrency: "PLN"
+            assetId: 1
+            companyBacked: false
+    responses:
+      "201":
+        description: Subasset created (response is its parent asset).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/positions.yaml#/AssetSingleResponse"
+      "400":
+        description: >
+          Neither/both of `assetId` and `newAsset`, a target key at the top level, target
+          outside 0..100, or `portfolio` differing from the target asset's (`VALIDATION_ERROR`).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+item:
+  get:
+    tags: [positions]
+    summary: Get a single position (its parent asset)
+    operationId: getPosition
+    description: >
+      `{id}` is a subasset row id (stable across the task-156 migration); the response
+      is its parent asset, with all subassets nested.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "200":
+        description: Parent asset with subassets.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/positions.yaml#/AssetSingleResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  put:
+    tags: [positions]
+    summary: Partial update of a subasset
+    operationId: updatePosition
+    description: >
+      Subasset-owned fields only (task 156). Targets live on the parent asset — a
+      `targetAllocationPct`/`targetAllocationPctRiskOff` key here is rejected with 400;
+      edit targets via PUT /assets/{id} instead. An optional `assetId` re-homes a
+      NON-primary subasset under another asset of the same portfolio (task 156 §13):
+      equal to the current asset or absent = ignored; primary subasset = 409; unknown
+      asset = 404; other portfolio = 400 (field `assetId`). Every check runs before the
+      single write, so a rejected edit writes nothing.
+
+      **A units edit never changes cost.** `totalSpentPln` (the row's cost slot; only the
+      sum over the asset's subassets is meaningful) changes only through an explicit
+      `totalSpentPln` value in the body — the reviewed correction path — so editing
+      units up without cost lowers `computed.avgBuyPricePln`. `avgBuyPrice` is deprecated
+      (still stored, nothing reads it).
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/positions.yaml#/UpdatePositionRequest"
+    responses:
+      "200":
+        description: >
+          Updated subasset's parent asset (the NEW parent after a re-home, with the moved
+          subasset nested in it).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/positions.yaml#/AssetSingleResponse"
+      "400":
+        description: >
+          A target key at the top level, a negative unit bucket, or `assetId` naming an asset
+          of a different portfolio (`VALIDATION_ERROR`, field `assetId` for the latter).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  delete:
+    tags: [positions]
+    summary: Delete a subasset
+    operationId: deletePosition
+    description: >
+      Soft-deletes one subasset row (task 173: sets deleted_at; history is never
+      removed and never blocks the delete). Deleting the primary subasset while live
+      siblings remain is rejected with 409 ("set a new primary first", no silent
+      leadership change). Deleting the asset's last live subasset soft-deletes the asset
+      in the same step. 404 when unknown or already deleted. Re-creating the ticker via
+      POST /positions restores the row. This applies uniformly across MAIN and RETIREMENT.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "204":
+        description: Subasset deleted.
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+setPrimary:
+  post:
+    tags: [positions]
+    summary: Flip which subasset of an asset is primary
+    operationId: setAssetPrimary
+    description: >
+      Flips which subasset of the asset at `{id}` is primary (task 156 — replaces
+      POST /positions/{id}/promote). Pure boolean flip in one transaction: no units
+      move, no `asset_purchases` row is written, no cost basis migrates (cost basis
+      never leaves its row), no sibling repointing exists to do (membership is the
+      asset_id FK, not a string).
+
+      The portfolio's asset-targets Σ == 100 tripwire (the rebalancing Step-6
+      precondition; MAIN checks both regime tables) runs inside the same transaction —
+      it passes by construction when targets are complete, and rejects with 400
+      (rolling the flip back) when an in-progress target edit left the book off 100.
+      Available on both MAIN and RETIREMENT assets.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: The asset's id.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/positions.yaml#/SetAssetPrimaryRequest"
+    responses:
+      "200":
+        description: >
+          Primary flipped. `data` is the asset — same shape GET /positions/{id}
+          returns, with `subassets` reflecting the new primary.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/positions.yaml#/AssetSingleResponse"
+      "400":
+        description: >
+          `subassetId` does not belong to asset `{id}`, or the Σ == 100 tripwire failed
+          (both `VALIDATION_ERROR`).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+assetItem:
+  put:
+    tags: [positions]
+    summary: Edit asset-level fields (targets)
+    operationId: updateAsset
+    description: >
+      Edits asset-level fields — the only writer of targets (task 156). Omitted keys are
+      left unchanged; an explicit `null` target clears it (no target). Range-validated
+      (0..100) only — no Σ == 100 guard, so partial edits stay possible.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/positions.yaml#/UpdateAssetRequest"
+    responses:
+      "200":
+        description: Updated asset.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/positions.yaml#/AssetSingleResponse"
+      "400":
+        description: Target outside 0..100 (`VALIDATION_ERROR`).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  delete:
+    tags: [positions]
+    summary: Delete a whole asset
+    operationId: deleteAsset
+    description: >
+      Soft-deletes a whole asset and all its live subassets in one statement (task 173).
+      History rows are untouched. 404 when unknown or already deleted.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      "204":
+        description: Asset deleted.
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"

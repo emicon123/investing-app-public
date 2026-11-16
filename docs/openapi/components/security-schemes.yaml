@@ -1,0 +1,43 @@
+bearerAuth:
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  description: |
+    Backend-issued JWT obtained from `POST /api/auth/token`.
+    Send as `Authorization: Bearer <backend-jwt>`.
+    The backend validates the HS256 signature and `exp` claim locally
+    (no outbound call to Google per request). Session lifetime is 30 days
+    by default (`app.security.jwt-expiry-days`).
+
+    To obtain a token: call `POST /auth/token` with a short-lived Google ID
+    token (acquired via Google Sign-In). The backend validates the Google
+    token once, then issues the long-lived backend JWT.
+
+serviceTokenAuth:
+  type: apiKey
+  in: header
+  name: X-Service-Token
+  description: |
+    Shared-secret header used by non-interactive host cron / on-demand scripts
+    on the Raspberry Pi host, not a logged-in user. Two modules use it today:
+
+    - **news**: exclusively, on `GET /news/assets`, `POST /news/ingest` and
+      `POST /news/notifications` (`infra/news/news-research.sh`; the last one is the
+      ADR-108 Web Push fan-out). Every other news endpoint — including
+      the user-facing `GET /news` and `GET /news/dates` — uses `bearerAuth`
+      only.
+    - **bot** (OKX macro-calendar trading-bot tracker, ADR-089): exclusively,
+      on its write paths (`POST /bot/plans/ingest`, `POST /bot/calendar/sync`,
+      `POST /bot/signals`, writes under `/bot/trades/**`). Additionally
+      accepted (alongside `bearerAuth`, not instead of it) on four dual-
+      audience reads also used by the web frontend — `GET /bot/calendar`,
+      `GET /bot/trades` / `/bot/trades/**`, `GET /bot/stats`, and
+      `GET /market-data/macro-state` — see ADR-089 for why those specific
+      reads accept either credential while everything else stays
+      machine-only.
+
+    The backend compares the header value (constant-time) against
+    `app.news.ingest-token` (env `NEWS_INGEST_TOKEN`; the bot scripts also
+    accept a `BOT_INGEST_TOKEN` env-var alias, but there is no separate
+    secret validated server-side — it must hold the same value).
+

@@ -1,0 +1,40 @@
+/* History chart tokens — shared by all three apps (task history-chart-shared).
+   `:root` is the light scope, `.dark` the dark override on the same <html>
+   element. Semantic tokens (--foreground, --muted-foreground, --neon-gain,
+   --neon-loss) are owned by design-tokens.css. Per-app overrides can be added
+   later in each app's theme-<app>.css (loaded after base.css). */
+:root {
+  --history-value: var(--foreground);
+  --history-performance: oklch(0.52 0.12 220);
+  --history-deposits: oklch(0.50 0 0);
+  --history-inflation: oklch(0.556 0 0);
+  --history-real: color-mix(in oklab, var(--foreground) 82%, transparent);
+  --history-zero: oklch(0.40 0.01 250);
+  --history-axis-tick: oklch(0.42 0.01 250);
+  --history-axis-line: oklch(0.85 0 0);
+  --history-sparkline: color-mix(in oklab, var(--history-performance) 75%, transparent);
+  --history-annualized: oklch(0.60 0 0);
+  --history-profit: oklch(0.62 0.2 145);
+  --history-loss: oklch(0.58 0.22 15);
+  --history-profit-text: oklch(0.48 0.16 145);
+  --history-loss-text: oklch(0.52 0.2 18);
+  --history-profit-fill: oklch(0.62 0.2 145 / 20%);
+  --history-loss-fill: oklch(0.58 0.22 15 / 20%);
+}
+
+.dark {
+  --history-performance: oklch(0.78 0.14 200);
+  --history-zero: oklch(1 0 0 / 35%);
+  --history-axis-tick: oklch(0.73 0.015 250);
+  --history-axis-line: oklch(1 0 0 / 16%);
+  --history-sparkline: color-mix(in oklab, var(--history-performance) 65%, transparent);
+  --history-deposits: var(--muted-foreground);
+  --history-inflation: oklch(0.48 0.035 222);
+  --history-annualized: oklch(0.50 0.035 222);
+  --history-profit: oklch(0.78 0.26 145);
+  --history-loss: oklch(0.68 0.28 18);
+  --history-profit-text: var(--neon-gain);
+  --history-loss-text: var(--neon-loss);
+  --history-profit-fill: oklch(0.78 0.26 145 / 22%);
+  --history-loss-fill: oklch(0.68 0.28 18 / 22%);
+}

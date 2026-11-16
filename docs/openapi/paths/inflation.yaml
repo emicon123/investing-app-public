@@ -1,0 +1,112 @@
+collection:
+  get:
+    tags: [inflation]
+    summary: List Polish CPI data
+    operationId: listInflation
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 24
+          maximum: 100
+    responses:
+      "200":
+        description: Paginated CPI data points.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/inflation.yaml#/InflationPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  post:
+    tags: [inflation]
+    summary: Record a new CPI data point
+    operationId: createInflationEntry
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/inflation.yaml#/CreateInflationRequest"
+          example:
+            year: 2026
+            month: 5
+            cpiValue: 4.2
+    responses:
+      "201":
+        description: CPI data point recorded.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, meta]
+              properties:
+                data:
+                  $ref: "../components/schemas/inflation.yaml#/InflationEntry"
+                meta:
+                  $ref: "../components/schemas/common.yaml#/Meta"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+sync:
+  post:
+    tags: [inflation]
+    summary: Sync CPI data from GUS (SDP API with CSV fallback)
+    operationId: syncInflationFromGus
+    security:
+      - bearerAuth: []
+    description: |
+      Upserts month-over-month CPI values fetched from the GUS SDP API
+      (fallback: stat.gov.pl CSV scrape). Also runs monthly via scheduler
+      (15th, 06:00 Europe/Warsaw) and once on startup when stale.
+    responses:
+      "200":
+        description: Sync summary — upserted row count.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, meta]
+              properties:
+                data:
+                  type: object
+                  required: [upserts]
+                  properties:
+                    upserts:
+                      type: integer
+                meta:
+                  $ref: "../components/schemas/common.yaml#/Meta"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

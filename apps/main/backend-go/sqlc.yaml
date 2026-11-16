@@ -1,0 +1,25 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    # Points at the EXISTING Flyway migration directory, apps/main/db/migration/ at the repo root
+    # (Architect-owned, ADR-098 Decision 1) — sqlc reads it
+    # directly as the schema source of truth. Never copy this schema into backend-go; Phase 0
+    # confirmed (db/migration_test.go) it applies cleanly through the same Flyway CLI image used
+    # in prod.
+    # Explicit ordered file list, NOT a directory string — see hack/gen-sqlc-schema-list.sh.
+    # sqlc reads a directory schema in lexicographic filename order, which misorders Flyway's
+    # unpadded numbering (e.g. "V10__..." sorts before "V2__..."). Re-run
+    # hack/gen-sqlc-schema-list.sh and paste its output here whenever a migration is added.
+    schema:
+      - "../db/migration/V1__baseline_schema.sql"
+      - "../db/migration/V2__default_reference_data.sql"
+    # No domain queries exist yet — this phase adds none (see AGENTS.md's write-ownership
+    # boundary). The first *.sql file lands here in Phase 1 (market-data read queries).
+    queries: "db/queries"
+    gen:
+      go:
+        package: "sqlcgen"
+        out: "db/sqlcgen"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_pointers_for_null_types: true

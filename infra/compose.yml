@@ -1,0 +1,166 @@
+# docker-compose v2 — investing-app
+# Run from project root:
+#   docker compose -f infra/compose.yml --env-file .env.example config   # validate
+#   docker compose -f infra/compose.yml up                                # prod
+#   docker compose -f infra/compose.yml --profile dev up                  # dev (adds pgAdmin)
+
+name: investing
+
+services:
+
+  # ── Database: see infra/shared/compose.yml (ADR-083) ─────────────────────────────
+  # Postgres for this app now lives in the dedicated shared-infra stack (`db-shared`,
+  # database `investing`), shared with portfolioB/portfolioC. Not managed by this compose file
+  # — `docker compose up -d backend-go` here no longer starts/stops any database.
+
+  # ── Flyway runner (ADR-098 Decision 2) ───────────────────────────────────────
+  # One-shot job that replaces Spring's embedded Flyway now that Java is retired: applies
+  # apps/main/db/migration/ (V1..V71 plus V74..V77) to database `investing` on db-shared, then exits. `backend-go` waits
+  # for it via `depends_on: service_completed_successfully` (same-project only — Compose cannot
+  # gate across projects, hence one runner per app). Every `docker compose up -d` re-runs it (an
+  # idempotent no-op when up to date); a failing migration aborts `up` and leaves an already-running
+  # backend-go untouched. Named `flyway` (siblings: flyway-portfolio-b / flyway-portfolio-c) so the DNS aliases
+  # on the shared `investing-shared` network cannot collide.
+  # - Image MUST equal testsupport.DefaultFlywayImage (packages/common/go/common-go/testsupport/
+  #   postgres.go) — one pinned tag, so tests == prod.
+  # - Reuses the existing DB_URL/DB_USERNAME/DB_PASSWORD (per-DB owner role investing_user); no new
+  #   secrets. DB_URL is already a jdbc:postgresql://db-shared:5432/investing URL, used verbatim.
+  # - Mounts ONLY db/migration: Flyway scans `filesystem:` locations recursively, and the parked
+  #   V72/V73 live in the sibling db/unapplied/ so the runner can never see them.
+  # - Validation stays ON (default) for this DB: all 75 applied migrations validate clean.
+  # - Never `clean`; FLYWAY_CLEAN_DISABLED is belt-and-braces. mem_limit is for a short-lived JVM.
+  flyway:
+    image: flyway/flyway:13.10.3
+    platform: linux/arm64
+    restart: "no"
+    command: migrate
+    environment:
+      FLYWAY_URL: ${DB_URL}
+      FLYWAY_USER: ${DB_USERNAME}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_CONNECT_RETRIES: "10"
+      FLYWAY_CLEAN_DISABLED: "true"
+    volumes:
+      - ../apps/main/db/migration:/flyway/sql:ro
+    networks:
+      - investing-shared
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 384m
+
+  # ── Backend-Go (Go API — the app's only backend since Java was retired, ADR-094/098) ──
+  # Serves the entire /api surface (all domains + /auth/token). Reads DB_URL/DB_USERNAME/DB_PASSWORD
+  # and SPRING_PROFILES_ACTIVE (the dev/prod switch Go's common-go/config still honours) from
+  # infra/.env, plus the JWT_SECRET/GOOGLE_CLIENT_ID/ALLOWED_EMAIL_* auth allowlist (doc 13 §6.4).
+  # No `ports:` — reachable only from Nginx over `investing-shared`, never bound to the host.
+  backend-go:
+    build:
+      context: ..
+      dockerfile: infra/backend-go/Dockerfile
+    platform: linux/arm64
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      # Migrations first (ADR-098): the schema must be current before the Go API starts.
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      TZ: Europe/Warsaw
+      PORT: "8091"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      ALLOWED_EMAIL_1: ${ALLOWED_EMAIL_1}
+      NEWS_INGEST_TOKEN: ${NEWS_INGEST_TOKEN:-}
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      # Web Push (ADR-108): empty = push disabled. VAPID_SUBJECT keeps its "mailto:" prefix.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+      HISTORIA_SCHEDULER_ENABLED: "true"
+      BOT_SCHEDULER_ENABLED: "true"
+      # OKX order placement (bot). Credentials/endpoint come from infra/.env. OKX_DEMO_MODE
+      # defaults to true here so a missing .env var can never arm real-money trading — only an
+      # explicit OKX_DEMO_MODE=false does (mirrors backend-go/internal/bot/trade/config.go).
+      OKX_API_KEY: ${OKX_API_KEY:-}
+      OKX_API_SECRET: ${OKX_API_SECRET:-}
+      OKX_API_PASSPHRASE: ${OKX_API_PASSPHRASE:-}
+      OKX_BASE_URL: ${OKX_BASE_URL:-}
+      OKX_DEMO_MODE: ${OKX_DEMO_MODE:-true}
+      # Arms real order placement (LiveExecutionService's first gate). Armed 2026-09-19 at the
+      # user's explicit request with OKX_DEMO_MODE=false (real account, eea.okx.com). Kill switch:
+      # set this to "false" (or bot_control.trading_enabled=false) and `up -d backend-go`.
+      BOT_LIVE_EXECUTION_ENABLED: "true"
+      # Soft GC target below mem_limit: 64m, so the Go GC works harder before the kernel OOM-kills
+      # the container (task 176, F4.3).
+      GOMEMLIMIT: "48MiB"
+    # SIGTERM -> ordered shutdown (ADR-110). 90s: bot commit phase <= 55 s + HTTP drain 15 s
+    # (ADR-114), with headroom before Docker sends SIGKILL.
+    stop_grace_period: 90s
+    # Exec form: the distroless image has no shell/wget. `backend-go healthcheck` probes
+    # http://127.0.0.1:$PORT/api/health-go (which pings the DB) and exits 1 on a non-2xx.
+    healthcheck:
+      test: ["CMD", "/app/backend-go", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - default
+      - investing-shared
+    mem_limit: 64m
+
+  # ── Nginx (reverse proxy + React SPA static files) ───────────────────────────
+  nginx:
+    build:
+      context: ..
+      dockerfile: infra/nginx/Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    platform: linux/arm64
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "80:80"
+    depends_on:
+      # backend-go serves the entire API surface. service_started, not service_healthy: Nginx
+      # re-resolves the upstream per request (ADR-098), so it does not need to wait for the
+      # backend's healthcheck, and a slow DB must not keep the edge down.
+      backend-go:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - investing-shared
+    mem_limit: 96m
+
+  # ── pgAdmin (dev profile only — never exposed on Tailscale interface) ─────────
+  # Access remotely via SSH tunnel:
+  #   ssh -L 5050:localhost:5050 user@your-pi-host
+  #   Then open http://localhost:5050 in your browser.
+  pgadmin:
+    image: dpage/pgadmin4:9.18
+    platform: linux/arm64
+    profiles: [dev]
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "127.0.0.1:5050:80"
+
+networks:
+  # The investing-app's default bridge network (auto-created by Compose)
+  default: {}
+  # Shared network so Nginx can reach portfolio-b's frontend and backend
+  investing-shared:
+    external: true
+    name: investing-shared

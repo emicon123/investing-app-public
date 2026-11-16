@@ -1,0 +1,2903 @@
+{
+  "entry_z": -1.5,
+  "exit_z": 1.5,
+  "results_10y": [
+    {
+      "file": "AAPL_full",
+      "name": "AAPL",
+      "category": "mega_cap_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 265.4,
+        "cagr_pct": 14.7,
+        "max_drawdown_pct": -26.2,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 33.9,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 998.6,
+        "cagr_pct": 28.9,
+        "max_drawdown_pct": -34.6
+      },
+      "trades": [
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2020-01-03",
+          "entry_price": 35.7633,
+          "exit_price": 71.6306,
+          "return_pct": 100.29
+        }
+      ]
+    },
+    {
+      "file": "AMZN_full",
+      "name": "AMZN",
+      "category": "mega_cap_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 50.3,
+        "cagr_pct": 4.4,
+        "max_drawdown_pct": -49.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 47.1,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 514.1,
+        "cagr_pct": 21.2,
+        "max_drawdown_pct": -54.8
+      },
+      "trades": []
+    },
+    {
+      "file": "GOOGL_full",
+      "name": "GOOGL",
+      "category": "mega_cap_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 405.9,
+        "cagr_pct": 18.7,
+        "max_drawdown_pct": -29.7,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 55.2,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 799.9,
+        "cagr_pct": 26.2,
+        "max_drawdown_pct": -41.9
+      },
+      "trades": [
+        {
+          "entry_date": "2018-11-23",
+          "exit_date": "2021-02-05",
+          "entry_price": 51.0523,
+          "exit_price": 103.5235,
+          "return_pct": 102.78
+        },
+        {
+          "entry_date": "2022-09-16",
+          "exit_date": "2025-09-19",
+          "entry_price": 101.8965,
+          "exit_price": 254.2226,
+          "return_pct": 149.49
+        }
+      ]
+    },
+    {
+      "file": "MSFT_full",
+      "name": "MSFT",
+      "category": "mega_cap_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 55.0,
+        "cagr_pct": 4.7,
+        "max_drawdown_pct": -31.6,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 42.6,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 574.1,
+        "cagr_pct": 22.4,
+        "max_drawdown_pct": -35.1
+      },
+      "trades": []
+    },
+    {
+      "file": "NVDA_full",
+      "name": "NVDA",
+      "category": "mega_cap_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 662.1,
+        "cagr_pct": 24.0,
+        "max_drawdown_pct": -40.9,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 20.9,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 8208.1,
+        "cagr_pct": 59.6,
+        "max_drawdown_pct": -65.9
+      },
+      "trades": [
+        {
+          "entry_date": "2022-06-17",
+          "exit_date": "2024-06-07",
+          "entry_price": 15.836,
+          "exit_price": 120.6792,
+          "return_pct": 662.05
+        }
+      ]
+    },
+    {
+      "file": "JPM_full",
+      "name": "JPM",
+      "category": "single_stock_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 225.8,
+        "cagr_pct": 13.3,
+        "max_drawdown_pct": -37.8,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 49.1,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 382.7,
+        "cagr_pct": 18.1,
+        "max_drawdown_pct": -39.6
+      },
+      "trades": [
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2024-11-08",
+          "entry_price": 70.5395,
+          "exit_price": 229.849,
+          "return_pct": 225.84
+        }
+      ]
+    },
+    {
+      "file": "TSLA_full",
+      "name": "TSLA",
+      "category": "mega_cap_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2020-07-03",
+      "end_date": "2026-06-19",
+      "years_span": 5.96,
+      "n_weeks_eligible": 312,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 397.0,
+        "cagr_pct": 30.9,
+        "max_drawdown_pct": -72.2
+      },
+      "trades": []
+    },
+    {
+      "file": "META_full",
+      "name": "META",
+      "category": "mega_cap_equity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2022-05-20",
+      "end_date": "2026-06-19",
+      "years_span": 4.08,
+      "n_weeks_eligible": 214,
+      "strategy": {
+        "total_return_pct": 157.7,
+        "cagr_pct": 26.1,
+        "max_drawdown_pct": -53.5,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 43.2,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 200.9,
+        "cagr_pct": 31.0,
+        "max_drawdown_pct": -53.5
+      },
+      "trades": [
+        {
+          "entry_date": "2022-05-27",
+          "exit_date": "2024-03-01",
+          "entry_price": 193.4314,
+          "exit_price": 498.4557,
+          "return_pct": 157.69
+        }
+      ]
+    },
+    {
+      "file": "SPY_full",
+      "name": "SPY",
+      "category": "broad_index_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 226.4,
+        "cagr_pct": 13.3,
+        "max_drawdown_pct": -31.8,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 65.1,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 281.6,
+        "cagr_pct": 15.2,
+        "max_drawdown_pct": -31.8
+      },
+      "trades": [
+        {
+          "entry_date": "2018-10-26",
+          "exit_date": "2021-01-08",
+          "entry_price": 235.9808,
+          "exit_price": 354.0159,
+          "return_pct": 50.02
+        },
+        {
+          "entry_date": "2022-06-17",
+          "exit_date": "2026-05-29",
+          "entry_price": 346.8058,
+          "exit_price": 754.5361,
+          "return_pct": 117.57
+        }
+      ]
+    },
+    {
+      "file": "QQQ_full",
+      "name": "QQQ",
+      "category": "broad_index_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 377.0,
+        "cagr_pct": 18.0,
+        "max_drawdown_pct": -21.3,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 59.2,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 546.7,
+        "cagr_pct": 21.8,
+        "max_drawdown_pct": -35.1
+      },
+      "trades": [
+        {
+          "entry_date": "2018-11-23",
+          "exit_date": "2020-02-14",
+          "entry_price": 151.7455,
+          "exit_price": 226.1271,
+          "return_pct": 49.02
+        },
+        {
+          "entry_date": "2020-03-13",
+          "exit_date": "2020-06-19",
+          "entry_price": 185.3617,
+          "exit_price": 235.8804,
+          "return_pct": 27.25
+        }
+      ]
+    },
+    {
+      "file": "DIA_full",
+      "name": "DIA",
+      "category": "broad_index_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 183.9,
+        "cagr_pct": 11.7,
+        "max_drawdown_pct": -34.5,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 67.7,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 210.3,
+        "cagr_pct": 12.7,
+        "max_drawdown_pct": -34.5
+      },
+      "trades": [
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2021-04-16",
+          "entry_price": 194.8558,
+          "exit_price": 312.072,
+          "return_pct": 60.16
+        }
+      ]
+    },
+    {
+      "file": "IWM_full",
+      "name": "IWM",
+      "category": "broad_index_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 151.6,
+        "cagr_pct": 10.3,
+        "max_drawdown_pct": -40.0,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 65.1,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 145.2,
+        "cagr_pct": 10.0,
+        "max_drawdown_pct": -40.2
+      },
+      "trades": [
+        {
+          "entry_date": "2018-11-23",
+          "exit_date": "2021-01-08",
+          "entry_price": 134.2902,
+          "exit_price": 194.5276,
+          "return_pct": 44.86
+        },
+        {
+          "entry_date": "2022-05-20",
+          "exit_date": "2026-05-29",
+          "entry_price": 166.7879,
+          "exit_price": 289.741,
+          "return_pct": 73.72
+        }
+      ]
+    },
+    {
+      "file": "EEM_full",
+      "name": "EEM",
+      "category": "broad_index_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 136.3,
+        "cagr_pct": 9.5,
+        "max_drawdown_pct": -16.7,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 41.4,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 142.5,
+        "cagr_pct": 9.8,
+        "max_drawdown_pct": -39.2
+      },
+      "trades": [
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2020-11-06",
+          "entry_price": 27.3183,
+          "exit_price": 41.9949,
+          "return_pct": 53.72
+        },
+        {
+          "entry_date": "2022-07-15",
+          "exit_date": "2025-10-24",
+          "entry_price": 35.1529,
+          "exit_price": 54.0417,
+          "return_pct": 53.73
+        }
+      ]
+    },
+    {
+      "file": "FXI_full",
+      "name": "FXI",
+      "category": "broad_index_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 72.1,
+        "cagr_pct": 5.9,
+        "max_drawdown_pct": -48.2,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 51.3,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 17.4,
+        "cagr_pct": 1.7,
+        "max_drawdown_pct": -59.1
+      },
+      "trades": [
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2021-01-22",
+          "entry_price": 29.8323,
+          "exit_price": 45.8174,
+          "return_pct": 53.58
+        },
+        {
+          "entry_date": "2021-08-20",
+          "exit_date": "2025-08-22",
+          "entry_price": 34.376,
+          "exit_price": 38.5293,
+          "return_pct": 12.08
+        }
+      ]
+    },
+    {
+      "file": "XLE_full",
+      "name": "XLE",
+      "category": "sector_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 30.3,
+        "cagr_pct": 2.8,
+        "max_drawdown_pct": -59.5,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 32.3,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 108.8,
+        "cagr_pct": 8.1,
+        "max_drawdown_pct": -63.9
+      },
+      "trades": [
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2022-01-07",
+          "entry_price": 20.2677,
+          "exit_price": 26.4026,
+          "return_pct": 30.27
+        }
+      ]
+    },
+    {
+      "file": "XLF_full",
+      "name": "XLF",
+      "category": "sector_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 145.3,
+        "cagr_pct": 10.0,
+        "max_drawdown_pct": -39.3,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 62.5,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 170.4,
+        "cagr_pct": 11.1,
+        "max_drawdown_pct": -39.3
+      },
+      "trades": [
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2024-11-15",
+          "entry_price": 19.8617,
+          "exit_price": 48.7261,
+          "return_pct": 145.33
+        }
+      ]
+    },
+    {
+      "file": "GLD_full",
+      "name": "GLD",
+      "category": "commodity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 246.4,
+        "cagr_pct": 14.1,
+        "max_drawdown_pct": -20.1
+      },
+      "trades": []
+    },
+    {
+      "file": "SLV_full",
+      "name": "SLV",
+      "category": "commodity",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 280.5,
+        "cagr_pct": 15.2,
+        "max_drawdown_pct": -36.7
+      },
+      "trades": []
+    },
+    {
+      "file": "TLT_full",
+      "name": "TLT",
+      "category": "bond_credit_usd_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 10.3,
+        "cagr_pct": 1.0,
+        "max_drawdown_pct": -34.3,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 77.7,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -6.4,
+        "cagr_pct": -0.7,
+        "max_drawdown_pct": -47.8
+      },
+      "trades": [
+        {
+          "entry_date": "2017-01-20",
+          "exit_date": "2020-02-28",
+          "entry_price": 92.0126,
+          "exit_price": 128.6474,
+          "return_pct": 39.82
+        }
+      ]
+    },
+    {
+      "file": "HYG_full",
+      "name": "HYG",
+      "category": "bond_credit_usd_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-04-14",
+      "end_date": "2026-06-19",
+      "years_span": 9.18,
+      "n_weeks_eligible": 480,
+      "strategy": {
+        "total_return_pct": 48.1,
+        "cagr_pct": 4.4,
+        "max_drawdown_pct": -20.7,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 81.6,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 49.1,
+        "cagr_pct": 4.4,
+        "max_drawdown_pct": -20.7
+      },
+      "trades": []
+    },
+    {
+      "file": "LQD_full",
+      "name": "LQD",
+      "category": "bond_credit_usd_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 9.45,
+      "n_weeks_eligible": 494,
+      "strategy": {
+        "total_return_pct": 65.0,
+        "cagr_pct": 5.4,
+        "max_drawdown_pct": -16.9,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 76.3,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 28.9,
+        "cagr_pct": 2.7,
+        "max_drawdown_pct": -24.7
+      },
+      "trades": [
+        {
+          "entry_date": "2017-03-10",
+          "exit_date": "2020-01-24",
+          "entry_price": 83.6392,
+          "exit_price": 103.2555,
+          "return_pct": 23.45
+        },
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2020-04-10",
+          "entry_price": 85.1783,
+          "exit_price": 105.4648,
+          "return_pct": 23.82
+        }
+      ]
+    },
+    {
+      "file": "UUP_full",
+      "name": "UUP",
+      "category": "bond_credit_usd_etf",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2017-03-03",
+      "end_date": "2026-06-19",
+      "years_span": 9.3,
+      "n_weeks_eligible": 486,
+      "strategy": {
+        "total_return_pct": 17.9,
+        "cagr_pct": 1.8,
+        "max_drawdown_pct": -3.2,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 17.3,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 28.9,
+        "cagr_pct": 2.8,
+        "max_drawdown_pct": -13.5
+      },
+      "trades": [
+        {
+          "entry_date": "2020-12-04",
+          "exit_date": "2022-07-15",
+          "entry_price": 21.0956,
+          "exit_price": 24.8802,
+          "return_pct": 17.94
+        }
+      ]
+    },
+    {
+      "file": "BTC_USD_full",
+      "name": "BTC",
+      "category": "crypto",
+      "window_years": 10.0,
+      "eligible": true,
+      "start_date": "2020-07-24",
+      "end_date": "2026-06-19",
+      "years_span": 5.9,
+      "n_weeks_eligible": 309,
+      "strategy": {
+        "total_return_pct": 207.0,
+        "cagr_pct": 20.9,
+        "max_drawdown_pct": -50.2,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 67.9,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 558.1,
+        "cagr_pct": 37.6,
+        "max_drawdown_pct": -74.2
+      },
+      "trades": []
+    }
+  ],
+  "results_5y": [
+    {
+      "file": "AAPL_full",
+      "name": "AAPL",
+      "category": "mega_cap_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 1330.1,
+        "cagr_pct": 20.2,
+        "max_drawdown_pct": -30.3,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 69.1,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 2256.8,
+        "cagr_pct": 24.4,
+        "max_drawdown_pct": -43.6
+      },
+      "trades": [
+        {
+          "entry_date": "2013-01-25",
+          "exit_date": "2018-08-17",
+          "entry_price": 13.2849,
+          "exit_price": 51.4451,
+          "return_pct": 287.24
+        },
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2019-11-15",
+          "entry_price": 35.7633,
+          "exit_price": 64.0035,
+          "return_pct": 78.96
+        },
+        {
+          "entry_date": "2022-05-20",
+          "exit_date": "2025-11-28",
+          "entry_price": 134.8824,
+          "exit_price": 278.3329,
+          "return_pct": 106.35
+        }
+      ]
+    },
+    {
+      "file": "AMZN_full",
+      "name": "AMZN",
+      "category": "mega_cap_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 451.0,
+        "cagr_pct": 12.5,
+        "max_drawdown_pct": -49.0,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 39.8,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 2576.6,
+        "cagr_pct": 25.5,
+        "max_drawdown_pct": -54.8
+      },
+      "trades": [
+        {
+          "entry_date": "2014-04-11",
+          "exit_date": "2015-07-24",
+          "entry_price": 15.5865,
+          "exit_price": 26.471,
+          "return_pct": 69.83
+        },
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2020-07-10",
+          "entry_price": 68.8725,
+          "exit_price": 160.0,
+          "return_pct": 132.31
+        },
+        {
+          "entry_date": "2022-01-07",
+          "exit_date": "2024-12-06",
+          "entry_price": 162.554,
+          "exit_price": 227.03,
+          "return_pct": 39.66
+        }
+      ]
+    },
+    {
+      "file": "GOOGL_full",
+      "name": "GOOGL",
+      "category": "mega_cap_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 508.6,
+        "cagr_pct": 13.3,
+        "max_drawdown_pct": -29.7,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 45.5,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 2182.5,
+        "cagr_pct": 24.2,
+        "max_drawdown_pct": -41.9
+      },
+      "trades": [
+        {
+          "entry_date": "2016-06-24",
+          "exit_date": "2018-01-26",
+          "entry_price": 33.9589,
+          "exit_price": 58.8561,
+          "return_pct": 73.32
+        },
+        {
+          "entry_date": "2018-11-23",
+          "exit_date": "2020-08-28",
+          "entry_price": 51.0523,
+          "exit_price": 81.251,
+          "return_pct": 59.15
+        },
+        {
+          "entry_date": "2022-06-17",
+          "exit_date": "2025-09-05",
+          "entry_price": 106.2018,
+          "exit_price": 234.3315,
+          "return_pct": 120.65
+        }
+      ]
+    },
+    {
+      "file": "MSFT_full",
+      "name": "MSFT",
+      "category": "mega_cap_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 78.9,
+        "cagr_pct": 4.1,
+        "max_drawdown_pct": -31.6,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 31.4,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 1631.1,
+        "cagr_pct": 21.8,
+        "max_drawdown_pct": -35.1
+      },
+      "trades": [
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2020-05-08",
+          "entry_price": 130.1877,
+          "exit_price": 175.0496,
+          "return_pct": 34.46
+        }
+      ]
+    },
+    {
+      "file": "NVDA_full",
+      "name": "NVDA",
+      "category": "mega_cap_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 3035.4,
+        "cagr_pct": 26.9,
+        "max_drawdown_pct": -39.7,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 31.2,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 63196.3,
+        "cagr_pct": 56.3,
+        "max_drawdown_pct": -65.9
+      },
+      "trades": [
+        {
+          "entry_date": "2018-10-26",
+          "exit_date": "2021-10-29",
+          "entry_price": 4.9051,
+          "exit_price": 25.4834,
+          "return_pct": 419.53
+        },
+        {
+          "entry_date": "2022-09-02",
+          "exit_date": "2024-03-01",
+          "entry_price": 13.6092,
+          "exit_price": 82.133,
+          "return_pct": 503.51
+        }
+      ]
+    },
+    {
+      "file": "JPM_full",
+      "name": "JPM",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 419.1,
+        "cagr_pct": 12.1,
+        "max_drawdown_pct": -39.6,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 36.5,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 1249.2,
+        "cagr_pct": 19.7,
+        "max_drawdown_pct": -39.6
+      },
+      "trades": [
+        {
+          "entry_date": "2016-01-15",
+          "exit_date": "2016-12-09",
+          "entry_price": 43.3952,
+          "exit_price": 66.5111,
+          "return_pct": 53.27
+        },
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2021-06-04",
+          "entry_price": 76.6526,
+          "exit_price": 146.6841,
+          "return_pct": 91.36
+        },
+        {
+          "entry_date": "2022-04-29",
+          "exit_date": "2024-03-29",
+          "entry_price": 107.8677,
+          "exit_price": 190.9118,
+          "return_pct": 76.99
+        }
+      ]
+    },
+    {
+      "file": "TSLA_full",
+      "name": "TSLA",
+      "category": "mega_cap_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2015-07-03",
+      "end_date": "2026-06-19",
+      "years_span": 10.96,
+      "n_weeks_eligible": 573,
+      "strategy": {
+        "total_return_pct": 331.7,
+        "cagr_pct": 14.3,
+        "max_drawdown_pct": -51.7,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 64.3,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 2045.3,
+        "cagr_pct": 32.3,
+        "max_drawdown_pct": -72.2
+      },
+      "trades": [
+        {
+          "entry_date": "2015-11-13",
+          "exit_date": "2019-12-27",
+          "entry_price": 13.8127,
+          "exit_price": 28.692,
+          "return_pct": 107.72
+        },
+        {
+          "entry_date": "2022-10-14",
+          "exit_date": "2025-09-19",
+          "entry_price": 204.99,
+          "exit_price": 426.07,
+          "return_pct": 107.85
+        }
+      ]
+    },
+    {
+      "file": "META_full",
+      "name": "META",
+      "category": "mega_cap_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2017-05-19",
+      "end_date": "2026-06-19",
+      "years_span": 9.08,
+      "n_weeks_eligible": 475,
+      "strategy": {
+        "total_return_pct": 237.4,
+        "cagr_pct": 14.3,
+        "max_drawdown_pct": -61.7,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 48.1,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 293.3,
+        "cagr_pct": 16.3,
+        "max_drawdown_pct": -76.0
+      },
+      "trades": [
+        {
+          "entry_date": "2018-03-23",
+          "exit_date": "2020-08-07",
+          "entry_price": 158.0025,
+          "exit_price": 266.1032,
+          "return_pct": 68.42
+        },
+        {
+          "entry_date": "2022-02-04",
+          "exit_date": "2024-02-02",
+          "entry_price": 235.0261,
+          "exit_price": 470.8551,
+          "return_pct": 100.34
+        }
+      ]
+    },
+    {
+      "file": "SPY_full",
+      "name": "SPY",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 488.3,
+        "cagr_pct": 13.0,
+        "max_drawdown_pct": -16.9,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 57.7,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 652.6,
+        "cagr_pct": 15.0,
+        "max_drawdown_pct": -31.8
+      },
+      "trades": [
+        {
+          "entry_date": "2015-08-21",
+          "exit_date": "2018-01-05",
+          "entry_price": 164.938,
+          "exit_price": 240.0365,
+          "return_pct": 45.53
+        },
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2020-02-14",
+          "entry_price": 215.3253,
+          "exit_price": 307.7289,
+          "return_pct": 42.91
+        },
+        {
+          "entry_date": "2020-03-13",
+          "exit_date": "2020-12-04",
+          "entry_price": 245.4904,
+          "exit_price": 341.9635,
+          "return_pct": 39.3
+        }
+      ]
+    },
+    {
+      "file": "QQQ_full",
+      "name": "QQQ",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 698.6,
+        "cagr_pct": 15.5,
+        "max_drawdown_pct": -27.7,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 56.1,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 1348.9,
+        "cagr_pct": 20.3,
+        "max_drawdown_pct": -35.1
+      },
+      "trades": [
+        {
+          "entry_date": "2015-08-21",
+          "exit_date": "2018-01-12",
+          "entry_price": 94.6021,
+          "exit_price": 155.9092,
+          "return_pct": 64.81
+        },
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2020-02-07",
+          "entry_price": 140.6513,
+          "exit_price": 220.8844,
+          "return_pct": 57.04
+        },
+        {
+          "entry_date": "2020-03-13",
+          "exit_date": "2020-07-03",
+          "entry_price": 185.3617,
+          "exit_price": 243.9818,
+          "return_pct": 31.62
+        }
+      ]
+    },
+    {
+      "file": "DIA_full",
+      "name": "DIA",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 276.5,
+        "cagr_pct": 9.6,
+        "max_drawdown_pct": -34.5,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 56.9,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 463.2,
+        "cagr_pct": 12.7,
+        "max_drawdown_pct": -34.5
+      },
+      "trades": [
+        {
+          "entry_date": "2015-07-24",
+          "exit_date": "2017-10-06",
+          "entry_price": 140.9819,
+          "exit_price": 192.7173,
+          "return_pct": 36.7
+        },
+        {
+          "entry_date": "2018-12-21",
+          "exit_date": "2021-05-07",
+          "entry_price": 194.8558,
+          "exit_price": 317.5675,
+          "return_pct": 62.98
+        },
+        {
+          "entry_date": "2022-05-20",
+          "exit_date": "2026-01-09",
+          "entry_price": 290.7679,
+          "exit_price": 491.3401,
+          "return_pct": 68.98
+        }
+      ]
+    },
+    {
+      "file": "IWM_full",
+      "name": "IWM",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 213.9,
+        "cagr_pct": 8.2,
+        "max_drawdown_pct": -40.0,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 53.1,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 380.5,
+        "cagr_pct": 11.5,
+        "max_drawdown_pct": -40.2
+      },
+      "trades": [
+        {
+          "entry_date": "2015-08-21",
+          "exit_date": "2018-01-12",
+          "entry_price": 99.9053,
+          "exit_price": 142.3902,
+          "return_pct": 42.53
+        },
+        {
+          "entry_date": "2018-12-14",
+          "exit_date": "2020-12-18",
+          "entry_price": 127.6797,
+          "exit_price": 182.9338,
+          "return_pct": 43.28
+        },
+        {
+          "entry_date": "2022-06-17",
+          "exit_date": "2025-09-19",
+          "entry_price": 156.8754,
+          "exit_price": 241.1644,
+          "return_pct": 53.73
+        }
+      ]
+    },
+    {
+      "file": "EEM_full",
+      "name": "EEM",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 118.4,
+        "cagr_pct": 5.6,
+        "max_drawdown_pct": -20.4,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 38.1,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 153.1,
+        "cagr_pct": 6.6,
+        "max_drawdown_pct": -39.2
+      },
+      "trades": [
+        {
+          "entry_date": "2015-08-14",
+          "exit_date": "2017-03-17",
+          "entry_price": 27.8804,
+          "exit_price": 32.0806,
+          "return_pct": 15.07
+        },
+        {
+          "entry_date": "2020-03-13",
+          "exit_date": "2021-01-08",
+          "entry_price": 31.4822,
+          "exit_price": 48.431,
+          "return_pct": 53.84
+        },
+        {
+          "entry_date": "2022-05-06",
+          "exit_date": "2025-06-06",
+          "entry_price": 36.932,
+          "exit_price": 45.5773,
+          "return_pct": 23.41
+        }
+      ]
+    },
+    {
+      "file": "FXI_full",
+      "name": "FXI",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 104.4,
+        "cagr_pct": 5.1,
+        "max_drawdown_pct": -48.2,
+        "n_round_trips": 3,
+        "win_rate_pct": 66.7,
+        "pct_time_in_market": 42.2,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 37.2,
+        "cagr_pct": 2.2,
+        "max_drawdown_pct": -59.1
+      },
+      "trades": [
+        {
+          "entry_date": "2015-09-04",
+          "exit_date": "2017-10-06",
+          "entry_price": 25.6317,
+          "exit_price": 36.8858,
+          "return_pct": 43.91
+        },
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2021-02-12",
+          "entry_price": 29.8323,
+          "exit_price": 47.4744,
+          "return_pct": 59.14
+        },
+        {
+          "entry_date": "2021-08-20",
+          "exit_date": "2024-09-27",
+          "entry_price": 34.376,
+          "exit_price": 30.6886,
+          "return_pct": -10.73
+        }
+      ]
+    },
+    {
+      "file": "XLE_full",
+      "name": "XLE",
+      "category": "sector_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 42.7,
+        "cagr_pct": 2.5,
+        "max_drawdown_pct": -55.0,
+        "n_round_trips": 2,
+        "win_rate_pct": 50.0,
+        "pct_time_in_market": 40.3,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 151.7,
+        "cagr_pct": 6.6,
+        "max_drawdown_pct": -68.9
+      },
+      "trades": [
+        {
+          "entry_date": "2014-10-17",
+          "exit_date": "2018-01-05",
+          "entry_price": 26.4024,
+          "exit_price": 26.2801,
+          "return_pct": -0.46
+        },
+        {
+          "entry_date": "2020-01-31",
+          "exit_date": "2021-03-12",
+          "entry_price": 20.6033,
+          "exit_price": 22.029,
+          "return_pct": 6.92
+        }
+      ]
+    },
+    {
+      "file": "XLF_full",
+      "name": "XLF",
+      "category": "sector_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 139.4,
+        "cagr_pct": 6.2,
+        "max_drawdown_pct": -39.3,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 28.6,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 539.4,
+        "cagr_pct": 13.7,
+        "max_drawdown_pct": -39.3
+      },
+      "trades": [
+        {
+          "entry_date": "2016-01-08",
+          "exit_date": "2017-12-01",
+          "entry_price": 14.8261,
+          "exit_price": 23.4842,
+          "return_pct": 58.4
+        },
+        {
+          "entry_date": "2018-12-14",
+          "exit_date": "2021-03-12",
+          "entry_price": 20.9944,
+          "exit_price": 31.728,
+          "return_pct": 51.13
+        }
+      ]
+    },
+    {
+      "file": "GLD_full",
+      "name": "GLD",
+      "category": "commodity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 4.7,
+        "cagr_pct": 0.3,
+        "max_drawdown_pct": -41.3,
+        "n_round_trips": 2,
+        "win_rate_pct": 50.0,
+        "pct_time_in_market": 38.2,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 146.3,
+        "cagr_pct": 6.4,
+        "max_drawdown_pct": -41.3
+      },
+      "trades": [
+        {
+          "entry_date": "2012-05-25",
+          "exit_date": "2016-03-04",
+          "entry_price": 152.68,
+          "exit_price": 120.54,
+          "return_pct": -21.05
+        },
+        {
+          "entry_date": "2022-07-08",
+          "exit_date": "2024-04-05",
+          "entry_price": 162.3,
+          "exit_price": 215.14,
+          "return_pct": 32.56
+        }
+      ]
+    },
+    {
+      "file": "SLV_full",
+      "name": "SLV",
+      "category": "commodity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 37.2,
+        "cagr_pct": 2.2,
+        "max_drawdown_pct": -51.9,
+        "n_round_trips": 3,
+        "win_rate_pct": 66.7,
+        "pct_time_in_market": 37.9,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 113.2,
+        "cagr_pct": 5.4,
+        "max_drawdown_pct": -66.2
+      },
+      "trades": [
+        {
+          "entry_date": "2013-03-29",
+          "exit_date": "2016-02-12",
+          "entry_price": 27.42,
+          "exit_price": 14.99,
+          "return_pct": -45.33
+        },
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2020-07-10",
+          "entry_price": 11.62,
+          "exit_price": 17.43,
+          "return_pct": 50.0
+        },
+        {
+          "entry_date": "2022-07-01",
+          "exit_date": "2024-10-18",
+          "entry_price": 18.31,
+          "exit_price": 30.64,
+          "return_pct": 67.34
+        }
+      ]
+    },
+    {
+      "file": "TLT_full",
+      "name": "TLT",
+      "category": "bond_credit_usd_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 28.6,
+        "cagr_pct": 1.8,
+        "max_drawdown_pct": -37.9,
+        "n_round_trips": 3,
+        "win_rate_pct": 66.7,
+        "pct_time_in_market": 48.3,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 8.8,
+        "cagr_pct": 0.6,
+        "max_drawdown_pct": -47.8
+      },
+      "trades": [
+        {
+          "entry_date": "2013-07-05",
+          "exit_date": "2016-07-01",
+          "entry_price": 74.127,
+          "exit_price": 106.5543,
+          "return_pct": 43.75
+        },
+        {
+          "entry_date": "2018-02-02",
+          "exit_date": "2019-06-28",
+          "entry_price": 94.2529,
+          "exit_price": 108.4608,
+          "return_pct": 15.07
+        },
+        {
+          "entry_date": "2022-02-04",
+          "exit_date": "2024-09-06",
+          "entry_price": 118.6265,
+          "exit_price": 92.2535,
+          "return_pct": -22.23
+        }
+      ]
+    },
+    {
+      "file": "HYG_full",
+      "name": "HYG",
+      "category": "bond_credit_usd_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-04-13",
+      "end_date": "2026-06-19",
+      "years_span": 14.18,
+      "n_weeks_eligible": 741,
+      "strategy": {
+        "total_return_pct": 44.5,
+        "cagr_pct": 2.6,
+        "max_drawdown_pct": -20.7,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 70.8,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 91.9,
+        "cagr_pct": 4.7,
+        "max_drawdown_pct": -20.7
+      },
+      "trades": [
+        {
+          "entry_date": "2014-08-01",
+          "exit_date": "2024-08-16",
+          "entry_price": 49.0306,
+          "exit_price": 70.8455,
+          "return_pct": 44.49
+        }
+      ]
+    },
+    {
+      "file": "LQD_full",
+      "name": "LQD",
+      "category": "bond_credit_usd_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-01-06",
+      "end_date": "2026-06-19",
+      "years_span": 14.45,
+      "n_weeks_eligible": 755,
+      "strategy": {
+        "total_return_pct": 51.7,
+        "cagr_pct": 2.9,
+        "max_drawdown_pct": -21.3,
+        "n_round_trips": 4,
+        "win_rate_pct": 75.0,
+        "pct_time_in_market": 48.5,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 58.8,
+        "cagr_pct": 3.3,
+        "max_drawdown_pct": -24.7
+      },
+      "trades": [
+        {
+          "entry_date": "2013-05-31",
+          "exit_date": "2016-07-08",
+          "entry_price": 74.5049,
+          "exit_price": 87.7978,
+          "return_pct": 17.84
+        },
+        {
+          "entry_date": "2018-03-02",
+          "exit_date": "2019-05-31",
+          "entry_price": 86.5002,
+          "exit_price": 93.8207,
+          "return_pct": 8.46
+        },
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2020-04-10",
+          "entry_price": 85.1783,
+          "exit_price": 105.4648,
+          "return_pct": 23.82
+        },
+        {
+          "entry_date": "2022-01-14",
+          "exit_date": "2024-08-23",
+          "entry_price": 107.8425,
+          "exit_price": 103.3503,
+          "return_pct": -4.17
+        }
+      ]
+    },
+    {
+      "file": "UUP_full",
+      "name": "UUP",
+      "category": "bond_credit_usd_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2012-03-02",
+      "end_date": "2026-06-19",
+      "years_span": 14.3,
+      "n_weeks_eligible": 747,
+      "strategy": {
+        "total_return_pct": 33.1,
+        "cagr_pct": 2.0,
+        "max_drawdown_pct": -5.7,
+        "n_round_trips": 2,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 32.3,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 52.6,
+        "cagr_pct": 3.0,
+        "max_drawdown_pct": -13.5
+      },
+      "trades": [
+        {
+          "entry_date": "2017-07-14",
+          "exit_date": "2019-08-30",
+          "entry_price": 20.5676,
+          "exit_price": 22.71,
+          "return_pct": 10.42
+        },
+        {
+          "entry_date": "2020-12-04",
+          "exit_date": "2022-05-06",
+          "entry_price": 21.0956,
+          "exit_price": 23.8888,
+          "return_pct": 13.24
+        }
+      ]
+    },
+    {
+      "file": "BTC_USD_full",
+      "name": "BTC",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2015-07-24",
+      "end_date": "2026-06-19",
+      "years_span": 10.9,
+      "n_weeks_eligible": 570,
+      "strategy": {
+        "total_return_pct": 21837.6,
+        "cagr_pct": 63.9,
+        "max_drawdown_pct": -74.2,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 80.5,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 21619.3,
+        "cagr_pct": 63.8,
+        "max_drawdown_pct": -81.9
+      },
+      "trades": [
+        {
+          "entry_date": "2015-07-31",
+          "exit_date": "2017-11-03",
+          "entry_price": 284.5973,
+          "exit_price": 7198.6321,
+          "return_pct": 2429.41
+        }
+      ]
+    },
+    {
+      "file": "ETH_USD_full",
+      "name": "ETH",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2020-08-14",
+      "end_date": "2026-06-19",
+      "years_span": 5.85,
+      "n_weeks_eligible": 306,
+      "strategy": {
+        "total_return_pct": 8.3,
+        "cagr_pct": 1.4,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.7,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 289.8,
+        "cagr_pct": 26.2,
+        "max_drawdown_pct": -77.1
+      },
+      "trades": []
+    },
+    {
+      "file": "SOL_USD_full",
+      "name": "SOL",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2025-04-11",
+      "end_date": "2026-06-19",
+      "years_span": 1.19,
+      "n_weeks_eligible": 63,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -39.3,
+        "cagr_pct": -34.3,
+        "max_drawdown_pct": -73.8
+      },
+      "trades": []
+    },
+    {
+      "file": "ADA_USD",
+      "name": "ADA",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-11-11",
+      "end_date": "2026-06-12",
+      "years_span": 3.58,
+      "n_weeks_eligible": 188,
+      "strategy": {
+        "total_return_pct": -33.4,
+        "cagr_pct": -10.7,
+        "max_drawdown_pct": -87.3,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 77.5,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -52.1,
+        "cagr_pct": -18.6,
+        "max_drawdown_pct": -87.3
+      },
+      "trades": []
+    },
+    {
+      "file": "ALGO_USD",
+      "name": "ALGO",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2024-06-21",
+      "end_date": "2026-06-19",
+      "years_span": 1.99,
+      "n_weeks_eligible": 105,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -32.4,
+        "cagr_pct": -17.8,
+        "max_drawdown_pct": -83.8
+      },
+      "trades": []
+    },
+    {
+      "file": "ASML",
+      "name": "ASML",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": 120.5,
+        "cagr_pct": 21.9,
+        "max_drawdown_pct": -43.9,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 86.5,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 308.2,
+        "cagr_pct": 42.3,
+        "max_drawdown_pct": -43.9
+      },
+      "trades": [
+        {
+          "entry_date": "2022-06-24",
+          "exit_date": "2025-12-05",
+          "entry_price": 496.9009,
+          "exit_price": 1095.6285,
+          "return_pct": 120.49
+        }
+      ]
+    },
+    {
+      "file": "AVGO",
+      "name": "AVGO",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": 88.1,
+        "cagr_pct": 17.2,
+        "max_drawdown_pct": -8.9,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 18.3,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 723.3,
+        "cagr_pct": 69.7,
+        "max_drawdown_pct": -40.0
+      },
+      "trades": [
+        {
+          "entry_date": "2022-09-23",
+          "exit_date": "2023-06-16",
+          "entry_price": 44.3473,
+          "exit_price": 83.4235,
+          "return_pct": 88.11
+        }
+      ]
+    },
+    {
+      "file": "BABA",
+      "name": "BABA",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": -10.8,
+        "cagr_pct": -2.8,
+        "max_drawdown_pct": -41.6,
+        "n_round_trips": 1,
+        "win_rate_pct": 0.0,
+        "pct_time_in_market": 54.8,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 17.3,
+        "cagr_pct": 4.1,
+        "max_drawdown_pct": -47.3
+      },
+      "trades": [
+        {
+          "entry_date": "2022-07-15",
+          "exit_date": "2024-09-20",
+          "entry_price": 96.4014,
+          "exit_price": 86.0324,
+          "return_pct": -10.76
+        }
+      ]
+    },
+    {
+      "file": "BNB_USD",
+      "name": "BNB",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-11-11",
+      "end_date": "2026-06-12",
+      "years_span": 3.58,
+      "n_weeks_eligible": 188,
+      "strategy": {
+        "total_return_pct": 152.4,
+        "cagr_pct": 29.5,
+        "max_drawdown_pct": -51.9,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 83.4,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 108.2,
+        "cagr_pct": 22.7,
+        "max_drawdown_pct": -51.9
+      },
+      "trades": []
+    },
+    {
+      "file": "CIFR",
+      "name": "CIFR",
+      "category": "crypto_miner_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2025-10-24",
+      "end_date": "2026-06-19",
+      "years_span": 0.65,
+      "n_weeks_eligible": 35,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 26.9,
+        "cagr_pct": 44.1,
+        "max_drawdown_pct": -38.0
+      },
+      "trades": []
+    },
+    {
+      "file": "COIN",
+      "name": "COIN",
+      "category": "crypto_exchange_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2026-04-17",
+      "end_date": "2026-06-19",
+      "years_span": 0.17,
+      "n_weeks_eligible": 10,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -18.0,
+        "cagr_pct": -68.3,
+        "max_drawdown_pct": -26.1
+      },
+      "trades": []
+    },
+    {
+      "file": "DOGE_USD",
+      "name": "DOGE",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-11-11",
+      "end_date": "2026-06-19",
+      "years_span": 3.6,
+      "n_weeks_eligible": 189,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 2.6,
+        "cagr_pct": 0.7,
+        "max_drawdown_pct": -81.3
+      },
+      "trades": []
+    },
+    {
+      "file": "ETFBCASH_WA",
+      "name": "ETFBCASH.WA",
+      "category": "bond_credit_usd_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2026-06-12",
+      "end_date": "2026-07-03",
+      "years_span": 0.06,
+      "n_weeks_eligible": 4,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 0.3,
+        "cagr_pct": 5.1,
+        "max_drawdown_pct": 0.0
+      },
+      "trades": []
+    },
+    {
+      "file": "FET_USD",
+      "name": "FET",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2024-03-08",
+      "end_date": "2026-06-19",
+      "years_span": 2.28,
+      "n_weeks_eligible": 120,
+      "strategy": {
+        "total_return_pct": -22.7,
+        "cagr_pct": -10.7,
+        "max_drawdown_pct": -60.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 29.4,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -92.5,
+        "cagr_pct": -67.8,
+        "max_drawdown_pct": -95.3
+      },
+      "trades": []
+    },
+    {
+      "file": "FISV",
+      "name": "FISV",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2005-01-07",
+      "end_date": "2026-06-19",
+      "years_span": 21.45,
+      "n_weeks_eligible": 1120,
+      "strategy": {
+        "total_return_pct": 43.9,
+        "cagr_pct": 1.7,
+        "max_drawdown_pct": -64.9,
+        "n_round_trips": 3,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 51.4,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 397.1,
+        "cagr_pct": 7.8,
+        "max_drawdown_pct": -78.9
+      },
+      "trades": [
+        {
+          "entry_date": "2007-08-10",
+          "exit_date": "2010-12-10",
+          "entry_price": 11.76,
+          "exit_price": 14.805,
+          "return_pct": 25.89
+        },
+        {
+          "entry_date": "2016-08-05",
+          "exit_date": "2019-07-26",
+          "entry_price": 52.595,
+          "exit_price": 102.3,
+          "return_pct": 94.51
+        },
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2024-01-12",
+          "entry_price": 81.77,
+          "exit_price": 136.92,
+          "return_pct": 67.45
+        }
+      ]
+    },
+    {
+      "file": "GC_F",
+      "name": "GC=F",
+      "category": "commodity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": 29.3,
+        "cagr_pct": 6.7,
+        "max_drawdown_pct": -9.3,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 44.2,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 129.6,
+        "cagr_pct": 23.2,
+        "max_drawdown_pct": -19.4
+      },
+      "trades": [
+        {
+          "entry_date": "2022-07-01",
+          "exit_date": "2024-04-05",
+          "entry_price": 1798.9,
+          "exit_price": 2325.7,
+          "return_pct": 29.28
+        }
+      ]
+    },
+    {
+      "file": "GME",
+      "name": "GME",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2007-02-16",
+      "end_date": "2026-06-19",
+      "years_span": 19.34,
+      "n_weeks_eligible": 1010,
+      "strategy": {
+        "total_return_pct": -71.6,
+        "cagr_pct": -6.3,
+        "max_drawdown_pct": -93.7,
+        "n_round_trips": 2,
+        "win_rate_pct": 0.0,
+        "pct_time_in_market": 61.2,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 374.7,
+        "cagr_pct": 8.4,
+        "max_drawdown_pct": -93.3
+      },
+      "trades": [
+        {
+          "entry_date": "2008-06-06",
+          "exit_date": "2012-11-16",
+          "entry_price": 7.5746,
+          "exit_price": 4.422,
+          "return_pct": -41.62
+        },
+        {
+          "entry_date": "2015-12-04",
+          "exit_date": "2020-09-04",
+          "entry_price": 6.425,
+          "exit_price": 1.9125,
+          "return_pct": -70.23
+        }
+      ]
+    },
+    {
+      "file": "HBAR_USD",
+      "name": "HBAR",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2024-09-20",
+      "end_date": "2026-06-19",
+      "years_span": 1.74,
+      "n_weeks_eligible": 92,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 53.3,
+        "cagr_pct": 27.8,
+        "max_drawdown_pct": -79.3
+      },
+      "trades": []
+    },
+    {
+      "file": "HUT",
+      "name": "HUT",
+      "category": "crypto_miner_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2023-03-10",
+      "end_date": "2026-06-19",
+      "years_span": 3.28,
+      "n_weeks_eligible": 172,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 1828.3,
+        "cagr_pct": 146.7,
+        "max_drawdown_pct": -66.8
+      },
+      "trades": []
+    },
+    {
+      "file": "ICGA_DE",
+      "name": "ICGA.DE",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2024-07-05",
+      "end_date": "2026-07-03",
+      "years_span": 1.99,
+      "n_weeks_eligible": 105,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 19.8,
+        "cagr_pct": 9.5,
+        "max_drawdown_pct": -20.1
+      },
+      "trades": []
+    },
+    {
+      "file": "JNJ",
+      "name": "JNJ",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2005-01-07",
+      "end_date": "2026-06-19",
+      "years_span": 21.45,
+      "n_weeks_eligible": 1120,
+      "strategy": {
+        "total_return_pct": 253.7,
+        "cagr_pct": 6.1,
+        "max_drawdown_pct": -22.2,
+        "n_round_trips": 4,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 50.5,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 591.8,
+        "cagr_pct": 9.4,
+        "max_drawdown_pct": -31.7
+      },
+      "trades": [
+        {
+          "entry_date": "2008-10-10",
+          "exit_date": "2011-05-13",
+          "entry_price": 33.1211,
+          "exit_price": 43.0118,
+          "return_pct": 29.86
+        },
+        {
+          "entry_date": "2015-06-05",
+          "exit_date": "2018-01-19",
+          "entry_price": 72.8225,
+          "exit_price": 116.5616,
+          "return_pct": 60.06
+        },
+        {
+          "entry_date": "2018-05-04",
+          "exit_date": "2021-02-12",
+          "entry_price": 98.8632,
+          "exit_price": 142.9367,
+          "return_pct": 44.58
+        },
+        {
+          "entry_date": "2022-10-07",
+          "exit_date": "2025-08-08",
+          "entry_price": 143.7016,
+          "exit_price": 169.1047,
+          "return_pct": 17.68
+        }
+      ]
+    },
+    {
+      "file": "LIN",
+      "name": "LIN",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": 93.5,
+        "cagr_pct": 18.0,
+        "max_drawdown_pct": -16.8,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 99.0,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 90.0,
+        "cagr_pct": 17.5,
+        "max_drawdown_pct": -16.8
+      },
+      "trades": []
+    },
+    {
+      "file": "LINK_USD",
+      "name": "LINK",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-11-11",
+      "end_date": "2026-06-19",
+      "years_span": 3.6,
+      "n_weeks_eligible": 189,
+      "strategy": {
+        "total_return_pct": 332.4,
+        "cagr_pct": 50.1,
+        "max_drawdown_pct": -56.9,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 76.6,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 17.7,
+        "cagr_pct": 4.6,
+        "max_drawdown_pct": -74.7
+      },
+      "trades": [
+        {
+          "entry_date": "2022-11-18",
+          "exit_date": "2025-08-22",
+          "entry_price": 6.1858,
+          "exit_price": 26.7465,
+          "return_pct": 332.39
+        }
+      ]
+    },
+    {
+      "file": "MARA",
+      "name": "MARA",
+      "category": "crypto_miner_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2017-05-05",
+      "end_date": "2026-06-19",
+      "years_span": 9.12,
+      "n_weeks_eligible": 477,
+      "strategy": {
+        "total_return_pct": -65.7,
+        "cagr_pct": -11.1,
+        "max_drawdown_pct": -98.2,
+        "n_round_trips": 1,
+        "win_rate_pct": 0.0,
+        "pct_time_in_market": 35.3,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 80.3,
+        "cagr_pct": 6.7,
+        "max_drawdown_pct": -98.2
+      },
+      "trades": [
+        {
+          "entry_date": "2017-05-12",
+          "exit_date": "2020-07-31",
+          "entry_price": 5.92,
+          "exit_price": 2.03,
+          "return_pct": -65.71
+        }
+      ]
+    },
+    {
+      "file": "MSTR",
+      "name": "MSTR",
+      "category": "crypto_proxy_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2005-01-07",
+      "end_date": "2026-06-19",
+      "years_span": 21.45,
+      "n_weeks_eligible": 1120,
+      "strategy": {
+        "total_return_pct": 2829.5,
+        "cagr_pct": 17.1,
+        "max_drawdown_pct": -69.1,
+        "n_round_trips": 5,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 45.4,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 2081.0,
+        "cagr_pct": 15.5,
+        "max_drawdown_pct": -86.3
+      },
+      "trades": [
+        {
+          "entry_date": "2007-06-29",
+          "exit_date": "2010-01-15",
+          "entry_price": 9.449,
+          "exit_price": 10.359,
+          "return_pct": 9.63
+        },
+        {
+          "entry_date": "2012-11-23",
+          "exit_date": "2015-07-31",
+          "entry_price": 8.63,
+          "exit_price": 20.385,
+          "return_pct": 136.21
+        },
+        {
+          "entry_date": "2017-07-28",
+          "exit_date": "2019-11-08",
+          "entry_price": 13.999,
+          "exit_price": 15.613,
+          "return_pct": 11.53
+        },
+        {
+          "entry_date": "2020-03-20",
+          "exit_date": "2020-08-14",
+          "entry_price": 10.074,
+          "exit_price": 14.663,
+          "return_pct": 45.55
+        },
+        {
+          "entry_date": "2022-05-13",
+          "exit_date": "2024-03-08",
+          "entry_price": 20.457,
+          "exit_price": 142.559,
+          "return_pct": 596.87
+        }
+      ]
+    },
+    {
+      "file": "NQSE_DE",
+      "name": "NQSE.DE",
+      "category": "broad_index_etf",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2023-09-15",
+      "end_date": "2026-07-03",
+      "years_span": 2.8,
+      "n_weeks_eligible": 147,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 84.7,
+        "cagr_pct": 24.5,
+        "max_drawdown_pct": -18.8
+      },
+      "trades": []
+    },
+    {
+      "file": "NVO",
+      "name": "NVO",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": -58.8,
+        "cagr_pct": -19.9,
+        "max_drawdown_pct": -67.3,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 40.9,
+        "open_position_at_end": true
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -8.8,
+        "cagr_pct": -2.3,
+        "max_drawdown_pct": -74.0
+      },
+      "trades": []
+    },
+    {
+      "file": "PA_F",
+      "name": "PA=F",
+      "category": "commodity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": -37.9,
+        "cagr_pct": -11.3,
+        "max_drawdown_pct": -60.9,
+        "n_round_trips": 1,
+        "win_rate_pct": 0.0,
+        "pct_time_in_market": 75.5,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -28.7,
+        "cagr_pct": -8.1,
+        "max_drawdown_pct": -60.9
+      },
+      "trades": [
+        {
+          "entry_date": "2022-06-24",
+          "exit_date": "2025-06-27",
+          "entry_price": 1845.4,
+          "exit_price": 1145.6,
+          "return_pct": -37.92
+        }
+      ]
+    },
+    {
+      "file": "SI_F",
+      "name": "SI=F",
+      "category": "commodity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": 83.8,
+        "cagr_pct": 16.5,
+        "max_drawdown_pct": -16.3,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 73.6,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 214.6,
+        "cagr_pct": 33.3,
+        "max_drawdown_pct": -32.8
+      },
+      "trades": [
+        {
+          "entry_date": "2022-07-01",
+          "exit_date": "2025-06-06",
+          "entry_price": 19.597,
+          "exit_price": 36.025,
+          "return_pct": 83.83
+        }
+      ]
+    },
+    {
+      "file": "TRAC_USD",
+      "name": "TRAC",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2023-01-27",
+      "end_date": "2026-06-19",
+      "years_span": 3.39,
+      "n_weeks_eligible": 178,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 51.3,
+        "cagr_pct": 13.0,
+        "max_drawdown_pct": -80.3
+      },
+      "trades": []
+    },
+    {
+      "file": "TRX_USD",
+      "name": "TRX",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-11-11",
+      "end_date": "2026-06-19",
+      "years_span": 3.6,
+      "n_weeks_eligible": 189,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 470.0,
+        "cagr_pct": 62.1,
+        "max_drawdown_pct": -31.8
+      },
+      "trades": []
+    },
+    {
+      "file": "TSM",
+      "name": "TSM",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": 187.9,
+        "cagr_pct": 30.4,
+        "max_drawdown_pct": -33.6,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 76.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 431.2,
+        "cagr_pct": 52.0,
+        "max_drawdown_pct": -33.6
+      },
+      "trades": [
+        {
+          "entry_date": "2022-06-24",
+          "exit_date": "2025-07-04",
+          "entry_price": 80.663,
+          "exit_price": 232.2316,
+          "return_pct": 187.9
+        }
+      ]
+    },
+    {
+      "file": "WMT",
+      "name": "WMT",
+      "category": "single_stock_equity",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-06-17",
+      "end_date": "2026-06-12",
+      "years_span": 3.99,
+      "n_weeks_eligible": 209,
+      "strategy": {
+        "total_return_pct": 61.6,
+        "cagr_pct": 12.8,
+        "max_drawdown_pct": -10.3,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 47.6,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 222.3,
+        "cagr_pct": 34.1,
+        "max_drawdown_pct": -19.8
+      },
+      "trades": [
+        {
+          "entry_date": "2022-06-24",
+          "exit_date": "2024-05-17",
+          "entry_price": 39.2819,
+          "exit_price": 63.4623,
+          "return_pct": 61.56
+        }
+      ]
+    },
+    {
+      "file": "XRP_USD",
+      "name": "XRP",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-11-11",
+      "end_date": "2026-06-19",
+      "years_span": 3.6,
+      "n_weeks_eligible": 189,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 217.0,
+        "cagr_pct": 37.7,
+        "max_drawdown_pct": -67.9
+      },
+      "trades": []
+    },
+    {
+      "file": "ZANO_USD",
+      "name": "ZANO",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2025-01-17",
+      "end_date": "2026-06-19",
+      "years_span": 1.42,
+      "n_weeks_eligible": 75,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "n_round_trips": 0,
+        "win_rate_pct": null,
+        "pct_time_in_market": 0.0,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": -30.0,
+        "cagr_pct": -22.3,
+        "max_drawdown_pct": -65.6
+      },
+      "trades": []
+    },
+    {
+      "file": "ZEC_USD",
+      "name": "ZEC",
+      "category": "crypto",
+      "window_years": 5.0,
+      "eligible": true,
+      "start_date": "2022-11-11",
+      "end_date": "2026-06-19",
+      "years_span": 3.6,
+      "n_weeks_eligible": 189,
+      "strategy": {
+        "total_return_pct": 71.5,
+        "cagr_pct": 16.2,
+        "max_drawdown_pct": -57.3,
+        "n_round_trips": 1,
+        "win_rate_pct": 100.0,
+        "pct_time_in_market": 62.8,
+        "open_position_at_end": false
+      },
+      "benchmark_buy_hold": {
+        "total_return_pct": 1164.0,
+        "cagr_pct": 102.2,
+        "max_drawdown_pct": -67.6
+      },
+      "trades": [
+        {
+          "entry_date": "2023-06-09",
+          "exit_date": "2025-09-12",
+          "entry_price": 28.9825,
+          "exit_price": 49.7093,
+          "return_pct": 71.51
+        }
+      ]
+    }
+  ]
+}

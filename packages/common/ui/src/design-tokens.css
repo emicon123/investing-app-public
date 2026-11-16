@@ -1,0 +1,576 @@
+/* ============================================================
+   SHARED DESIGN TOKENS — all three apps (main, portfolioB, portfolioC)
+   ============================================================
+   Task 170 / ADR-106 (design doc docs/architecture/diagrams/170-portfolio-redesign.md §8):
+   the dark theme is a slate palette, identical in every app. The ground, cards, text and the
+   semantic colours (gain/loss, the rebalancing statuses, the TargetMeter) are hex constants in
+   :root. The per-app hue survives only in the ACCENT (--primary, --ring, --accent, the sidebar's
+   active item), read from --theme-hue-accent, which each app sets in its own theme-<app>.css
+   under [data-app-theme="<app>"] on <html> (static in index.html, next to class="dark").
+
+   Every text token is >= 4.5:1 on every surface (contrast table: design doc §8.3).
+
+   History (task 125, ADR-086): this file started as the portfolioB/portfolioC "psychedelic" theme with
+   every differing hue parameterized into --theme-hue-*; root converged on it in task 139. The
+   remaining --theme-hue-* readers below (nebula blobs, glass/glow utilities, --chart-1 via
+   --theme-chart-1) are kept for the login splash page and the charts.
+   ============================================================ */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-neon-gain: var(--neon-gain);
+  --color-neon-loss: var(--neon-loss);
+  --color-neon-cyan: var(--neon-cyan);
+  --color-neon-violet: var(--neon-violet);
+  --color-neon-pink: var(--neon-pink);
+  --color-neon-green: var(--neon-green);
+  --color-neon-magenta: var(--neon-magenta);
+  --color-neon-amber: var(--neon-amber);
+  --color-surface-ground: var(--surface-ground);
+  --color-surface-card: var(--surface-card);
+  --color-surface-table: var(--surface-table);
+  --color-surface-group: var(--surface-group);
+  --color-surface-group-hover: var(--surface-group-hover);
+  --color-surface-input: var(--surface-input);
+  --color-hairline: var(--hairline);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-text-1: var(--text-1);
+  --color-text-soft: var(--text-soft);
+  --color-text-2: var(--text-2);
+  --color-text-caption: var(--text-caption);
+  --color-gain: var(--gain);
+  --color-gain-text: var(--gain-text);
+  --color-loss: var(--loss);
+  --color-loss-text: var(--loss-text);
+  --color-status-over: var(--status-over);
+  --color-status-over-text: var(--status-over-text);
+  --color-status-under: var(--status-under);
+  --color-status-under-text: var(--status-under-text);
+  --color-status-under-fill: var(--status-under-fill);
+  --color-status-ok: var(--status-ok);
+  --color-meter-track: var(--meter-track);
+  --color-meter-fill: var(--meter-fill);
+  --color-meter-faint: var(--meter-faint);
+  --color-meter-marker: var(--meter-marker);
+  --color-meter-base: var(--meter-base);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  /* App-independent semantic tokens (task 170, design doc §8.1) — the same hexes in every app. */
+  --surface-ground: #0B0F17;
+  --surface-card: #121926;
+  --surface-table: #0E141F;
+  --surface-group: #131A27;
+  --surface-group-hover: #182130;
+  --surface-input: #0F1520;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-soft: rgba(255, 255, 255, 0.05);
+  --hairline-strong: rgba(255, 255, 255, 0.10);
+  --text-1: #E7ECF3;
+  --text-soft: #C9D1DD;
+  --text-2: #A3AFC2;
+  --text-caption: #8592A6;
+  --gain: #10B981;
+  --gain-text: #34D399;
+  --loss: #F43F5E;
+  --loss-text: #FB7185;
+  --status-over: #E8B04B;
+  --status-over-text: #EBC06A;
+  --status-under: #6AA8F0;
+  --status-under-text: #8CBCF5;
+  --status-under-fill: rgba(106, 168, 240, 0.45);
+  /* Dots and bars only (>= 3:1); the "OK" label uses --text-2. */
+  --status-ok: #7D8BA1;
+  --meter-track: rgba(255, 255, 255, 0.06);
+  --meter-fill: #7D8BA1;
+  --meter-faint: rgba(255, 255, 255, 0.10);
+  --meter-marker: #E7ECF3;
+  --meter-base: #A3AFC2;
+
+  --radius: 0.5rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --neon-gain: oklch(0.65 0.2 145);
+  --neon-loss: oklch(0.62 0.22 15);
+  --neon-cyan: oklch(0.72 0.22 200);
+  --neon-violet: oklch(0.65 0.28 var(--theme-hue-primary));
+  --neon-pink: oklch(0.68 0.30 330);
+  --neon-green: oklch(0.75 0.28 140);
+  --neon-magenta: oklch(0.65 0.35 320);
+  --neon-amber: oklch(0.78 0.22 65);
+}
+
+/* ============================================================
+   DARK THEME — slate (task 170); per-app hue only in the accent
+   ============================================================ */
+.dark {
+  --background: var(--surface-ground);
+  --foreground: var(--text-1);
+
+  --card: var(--surface-card);
+  --card-foreground: var(--text-1);
+
+  --popover: var(--surface-card);
+  --popover-foreground: var(--text-1);
+
+  /* Accent: a soft tint of each app's own hue (main 245, portfolioB 300, portfolioC 150). */
+  --primary: oklch(0.80 0.10 var(--theme-hue-accent));
+  --primary-foreground: #0B0F17;
+
+  --secondary: var(--surface-group-hover);
+  --secondary-foreground: var(--text-1);
+
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: var(--text-2);
+
+  --accent: oklch(0.80 0.10 var(--theme-hue-accent) / 14%);
+  --accent-foreground: var(--text-1);
+
+  --destructive: var(--loss);
+
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: oklch(0.80 0.10 var(--theme-hue-accent));
+
+  /* Chart palette — unchanged */
+  --chart-1: var(--theme-chart-1);   /* app-specific accent, see theme-*.css */
+  --chart-2: oklch(0.75 0.28 140);   /* acid green */
+  --chart-3: oklch(0.65 0.35 320);   /* hot magenta */
+  --chart-4: oklch(0.75 0.28 200);   /* electric cyan */
+  --chart-5: oklch(0.78 0.22 65);    /* golden amber */
+
+  --sidebar: #0E131D;
+  --sidebar-foreground: var(--text-1);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: #0B0F17;
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--text-1);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--ring);
+
+  /* Existing text-neon-* users follow the semantic gain/loss colours. */
+  --neon-gain: var(--gain-text);
+  --neon-loss: var(--loss-text);
+  --neon-cyan: oklch(0.78 0.26 200);
+  --neon-violet: oklch(0.68 0.32 var(--theme-hue-primary));
+  --neon-pink: oklch(0.70 0.32 330);
+  --neon-green: oklch(0.75 0.28 140);
+  --neon-magenta: oklch(0.65 0.38 318);
+  --neon-amber: oklch(0.78 0.22 65);
+}
+
+/* ============================================================
+   KEYFRAME ANIMATIONS
+   ============================================================ */
+
+/* Slow nebula blob drift — 5 blobs each on independent cycles */
+@keyframes nebula-drift-1 {
+  0%   { transform: translate(0%, 0%) scale(1); }
+  33%  { transform: translate(8%, -12%) scale(1.15); }
+  66%  { transform: translate(-6%, 10%) scale(0.90); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+
+@keyframes nebula-drift-2 {
+  0%   { transform: translate(0%, 0%) scale(1); }
+  40%  { transform: translate(-10%, 8%) scale(1.20); }
+  70%  { transform: translate(12%, -6%) scale(0.85); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+
+@keyframes nebula-drift-3 {
+  0%   { transform: translate(0%, 0%) scale(1); }
+  25%  { transform: translate(14%, 6%) scale(0.88); }
+  55%  { transform: translate(-8%, -14%) scale(1.18); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+
+@keyframes nebula-drift-4 {
+  0%   { transform: translate(0%, 0%) scale(1.1); }
+  45%  { transform: translate(-12%, 10%) scale(0.92); }
+  80%  { transform: translate(8%, -8%) scale(1.22); }
+  100% { transform: translate(0%, 0%) scale(1.1); }
+}
+
+@keyframes nebula-drift-5 {
+  0%   { transform: translate(0%, 0%) scale(0.95); }
+  30%  { transform: translate(10%, -10%) scale(1.12); }
+  65%  { transform: translate(-14%, 4%) scale(0.88); }
+  100% { transform: translate(0%, 0%) scale(0.95); }
+}
+
+/* Slow hue-rotate for aurora-feel gradient cycling */
+@keyframes aurora-hue {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(30deg) brightness(1.08); }
+  100% { filter: hue-rotate(0deg) brightness(1); }
+}
+
+/* ============================================================
+   BASE LAYER
+   ============================================================ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    position: relative;
+    overflow-x: hidden;
+    /* Figures line up in every column, app-wide (task 170). */
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Flat slate ground (task 170: the nebula is off in the app shell). */
+  .dark body {
+    background-color: var(--surface-ground);
+  }
+
+  /* Custom scrollbar — neutral on the slate ground */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 99px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.24);
+  }
+
+  /* Firefox scrollbar (webkit rules above cover Chromium) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  }
+}
+
+/* ============================================================
+   ANIMATED NEBULA BACKGROUND WRAPPER
+   Applied to #nebula-bg element rendered at body level in App.tsx
+   — or via .nebula-canvas class on a fixed full-screen div
+   ============================================================ */
+.nebula-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.nebula-canvas::before,
+.nebula-canvas::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+}
+
+/* The actual blobs are individual .nebula-blob-N divs for full control */
+.nebula-blob-1 {
+  position: absolute;
+  width: 80vw;
+  height: 80vw;
+  top: -25vw;
+  left: 10vw;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.30 0.20 var(--theme-hue-glow) / 55%) 0%,
+    oklch(0.20 0.12 var(--theme-hue-foreground) / 20%) 50%,
+    transparent 75%
+  );
+  animation: nebula-drift-1 28s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.nebula-blob-2 {
+  position: absolute;
+  width: 60vw;
+  height: 60vw;
+  top: 20vw;
+  right: -10vw;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.28 0.22 315 / 45%) 0%,
+    oklch(0.18 0.14 320 / 18%) 50%,
+    transparent 75%
+  );
+  animation: nebula-drift-2 35s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.nebula-blob-3 {
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  bottom: 0;
+  left: -5vw;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.25 0.20 195 / 40%) 0%,
+    oklch(0.15 0.10 200 / 15%) 50%,
+    transparent 70%
+  );
+  animation: nebula-drift-3 32s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.nebula-blob-4 {
+  position: absolute;
+  width: 70vw;
+  height: 50vw;
+  top: 40vw;
+  left: 20vw;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.22 0.16 140 / 30%) 0%,
+    oklch(0.14 0.08 145 / 10%) 55%,
+    transparent 75%
+  );
+  animation: nebula-drift-4 42s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.nebula-blob-5 {
+  position: absolute;
+  width: 45vw;
+  height: 45vw;
+  top: 55vw;
+  right: 5vw;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.32 0.25 60 / 25%) 0%,
+    oklch(0.20 0.12 55 / 10%) 50%,
+    transparent 70%
+  );
+  animation: nebula-drift-5 38s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+/* Subtle grain texture overlay — very low opacity noise effect */
+.nebula-canvas::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+}
+
+/* Slow halo ring at viewport center */
+.conic-halo {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120vw;
+  height: 120vw;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    oklch(0.25 0.15 var(--theme-hue-primary) / 8%) 0deg,
+    oklch(0.25 0.15 200 / 5%) 60deg,
+    oklch(0.20 0.12 145 / 4%) 120deg,
+    oklch(0.22 0.15 320 / 6%) 180deg,
+    oklch(0.25 0.15 65 / 5%) 240deg,
+    oklch(0.25 0.15 var(--theme-hue-primary) / 8%) 360deg
+  );
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-hue 60s linear infinite;
+}
+
+/* Prefers reduced motion — disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  .nebula-blob-1,
+  .nebula-blob-2,
+  .nebula-blob-3,
+  .nebula-blob-4,
+  .nebula-blob-5,
+  .conic-halo {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+@layer utilities {
+
+  /* --- Glass panel --- */
+  .glass {
+    background-color: var(--card);
+    backdrop-filter: blur(20px) saturate(200%) brightness(1.05);
+    -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(1.05);
+    border: 1px solid oklch(1 0 0 / 10%);
+  }
+
+  /* --- Psychedelic glass card (heavier, richer) --- */
+  .card-psychedelic {
+    background: oklch(0.12 0.045 var(--theme-hue-secondary) / 60%);
+    backdrop-filter: blur(24px) saturate(220%) brightness(1.08);
+    -webkit-backdrop-filter: blur(24px) saturate(220%) brightness(1.08);
+    border: 1px solid oklch(1 0 0 / 10%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-psychedelic::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      oklch(0.68 0.32 var(--theme-hue-primary) / 40%) 0%,
+      oklch(0.65 0.38 318 / 30%) 25%,
+      oklch(0.78 0.26 200 / 30%) 50%,
+      oklch(0.75 0.28 140 / 25%) 75%,
+      oklch(0.78 0.22 65 / 30%) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Active nav item — the app's soft accent (task 170: no glow) */
+  .nav-active-glow {
+    background: var(--accent);
+    border-left: 3px solid var(--primary);
+  }
+
+  /* --- Typography gradients --- */
+
+  /* 3-color: violet → cyan → magenta */
+  .gradient-text-tri {
+    background: linear-gradient(
+      105deg,
+      oklch(0.72 0.32 var(--theme-hue-primary)) 0%,
+      oklch(0.78 0.26 200) 45%,
+      oklch(0.68 0.38 318) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* --- Neon text --- */
+  .text-neon-gain {
+    color: var(--neon-gain);
+    text-shadow:
+      0 0 8px oklch(0.78 0.26 145 / 60%),
+      0 0 20px oklch(0.78 0.26 145 / 25%);
+  }
+
+  .text-neon-loss {
+    color: var(--neon-loss);
+    text-shadow:
+      0 0 8px oklch(0.68 0.28 18 / 60%),
+      0 0 20px oklch(0.68 0.28 18 / 25%);
+  }
+
+  .text-neon-cyan {
+    color: var(--neon-cyan);
+    text-shadow:
+      0 0 8px oklch(0.78 0.26 200 / 55%),
+      0 0 20px oklch(0.78 0.26 200 / 20%);
+  }
+
+  .text-neon-violet {
+    color: var(--neon-violet);
+    text-shadow:
+      0 0 8px oklch(0.68 0.32 var(--theme-hue-primary) / 55%),
+      0 0 20px oklch(0.68 0.32 var(--theme-hue-primary) / 22%);
+  }
+}

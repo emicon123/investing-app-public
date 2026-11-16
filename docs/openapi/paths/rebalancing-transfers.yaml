@@ -1,0 +1,135 @@
+collection:
+  post:
+    tags: [rebalancing-transfers]
+    summary: Record an ad-hoc rebalancing transfer
+    operationId: createRebalancingTransfer
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: "../components/parameters.yaml#/IdempotencyKey"
+    description: |
+      Sells one position (`sold`) and buys one or more other positions
+      (`buys`) in a single ad-hoc transaction — no purchase session
+      involved. Backs the "Przenieś wartość" (Transfer value) dialog used
+      to swap an over-allocated asset into others (e.g. reducing a
+      crypto position back toward target and moving the proceeds into
+      gold and an index fund).
+
+      The request carries a single required top-level `portfolio` (MAIN
+      or RETIREMENT) that scopes the entire transfer — a transfer can
+      never move value across portfolios, since the sold leg and every
+      buy leg always share one portfolio's book. Each leg resolves its
+      position via the composite key `(ticker, portfolio)`, **not**
+      ticker alone: `positions` has a `(ticker, exchange, portfolio)`
+      unique constraint, and many tickers (`HUT`, `SOL-USD`, `ETH-USD`,
+      `PL.ETNVIRSOL`, `PL.ETNVIRETH`, ...) exist as separate rows in
+      both MAIN and RETIREMENT (ADR-063 — a ticker-alone lookup here
+      previously caused a real transfer to record its sold and bought
+      legs under two different portfolios). For the sold leg, units are
+      subtracted from the sub-account named by `accountType` /
+      `regularCurrency`; the request is rejected with a 400 if the
+      position doesn't hold at least that many units in that sub-account.
+      For each buy leg, units are added to the named sub-account. Writes
+      one row per leg to `asset_purchases` with `session_id=NULL` (an
+      ad-hoc audit trail alongside purchase-session commits).
+
+      `positions.total_spent_pln` (cost basis) is kept in sync with the
+      asset-level average-cost rule (the same kernel as a purchase-session
+      commit; only the sum of an asset's row costs is meaningful): the sale
+      reduces the recorded cost of the whole sold ASSET — every row that
+      carries cost, not only the sold row — in proportion to the value sold
+      (`units * pricePln`, the actual PLN proceeds), and sets it to exactly 0
+      when no units remain. A buy leg on the SAME asset as the sold row carries
+      that cost (a same-asset swap leaves the asset's cost and entry price
+      unchanged, up to a `min(1, legs value / proceeds)` share); a buy leg on
+      ANOTHER asset adds `units * pricePln` (the actual PLN paid) to that
+      asset's cost at market. The amounts come from the client-supplied
+      `pricePln`, not a live market price — the dialog lets the user enter the
+      real transaction totals and derives `pricePln = amountPln / units` before
+      submitting. Other subassets of the sold asset are valued from
+      `price_cache` (no network call inside the transaction).
+
+      **Wrapper lock (ADR-054).** IKE and IKZE holdings can only be
+      reinvested within that same wrapper: if `sold.accountType` is `IKE`
+      or `IKZE`, every entry in `buys` must carry the identical
+      `accountType` — any other combination (including IKE↔IKZE) is
+      rejected with a 400. When `sold.accountType` is `REGULAR`, buy legs
+      may target `REGULAR`, `IKE`, or `IKZE` freely.
+
+      **Auto-deposit (ADR-054).** Each buy leg that targets IKE or IKZE
+      while `sold.accountType = REGULAR` also creates one `Deposit` row
+      (`amount = units * pricePln`, `currency = PLN`) — a genuine new
+      contribution that counts against that wrapper's annual statutory
+      cap (see `GET /deposits/account-cap-usage`). In-wrapper transfers
+      and REGULAR→REGULAR legs never create a deposit. This is invisible
+      in this endpoint's own response — check `GET /deposits` or the cap
+      endpoint to see it.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/rebalancing-transfer.yaml#/RebalancingTransferRequest"
+          # Sold leg is REGULAR, so this is a valid mix under the ADR-054 wrapper lock: the
+          # ETCGLDRMAU.PL leg lands in IKE (triggers one auto-created Deposit, PLN 2220.00) and
+          # the CSPX.L leg stays REGULAR/EUR (ordinary rebalancing, no deposit). A sold leg of
+          # IKE or IKZE would instead require every buy leg to share that exact accountType.
+          # `portfolio: MAIN` scopes every leg's ticker lookup to MAIN's positions rows only
+          # (ADR-063) — the same tickers may also exist under RETIREMENT as separate rows.
+          example:
+            portfolio: "MAIN"
+            sold:
+              ticker: "CHFPLN=X"
+              accountType: "REGULAR"
+              regularCurrency: "PLN"
+              units: 500.0
+              pricePln: 4.55
+            buys:
+              - ticker: "ETCGLDRMAU.PL"
+                accountType: "IKE"
+                units: 1.2
+                pricePln: 1850.0
+              - ticker: "CSPX.L"
+                accountType: "REGULAR"
+                regularCurrency: "EUR"
+                units: 0.3
+                pricePln: 2200.0
+    responses:
+      "200":
+        description: Transfer recorded and all affected positions updated.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/rebalancing-transfer.yaml#/RebalancingTransferResponse"
+            example:
+              data:
+                affectedTickers: ["CHFPLN=X", "ETCGLDRMAU.PL", "CSPX.L"]
+                message: "Rebalancing transfer completed: sold CHFPLN=X, bought 2 asset(s)."
+              meta:
+                requestId: "550e8400-e29b-41d4-a716-446655440099"
+                timestamp: "2026-07-06T12:00:00Z"
+      "400":
+        description: >
+          Insufficient units for the sold leg's sub-account, or an invalid
+          cross-wrapper transfer (sold leg is IKE/IKZE and a buy leg
+          targets a different accountType — ADR-054). Both are raised as
+          `IllegalArgumentException` and share the generic
+          `VALIDATION_ERROR` error code. Also answered for a malformed
+          `Idempotency-Key` header (`field: Idempotency-Key`, ADR-111).
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/IdempotencyInProgress"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableOrKeyReused"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

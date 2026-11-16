@@ -1,0 +1,38 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "id": "<masked>",
+        "portfolio": "VARIABLE",
+        "depositDate": "2025-06-01",
+        "amount": 200.5,
+        "createdAt": "<masked>"
+      },
+      {
+        "id": "<masked>",
+        "portfolio": "VARIABLE",
+        "depositDate": "2025-03-01",
+        "amount": 300,
+        "comment": "marzec",
+        "createdAt": "<masked>"
+      },
+      {
+        "id": "<masked>",
+        "portfolio": "VARIABLE",
+        "depositDate": "2024-01-15",
+        "amount": 500,
+        "createdAt": "<masked>"
+      }
+    ],
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    },
+    "page": {
+      "number": 0,
+      "size": 50,
+      "total": 3
+    }
+  }
+}

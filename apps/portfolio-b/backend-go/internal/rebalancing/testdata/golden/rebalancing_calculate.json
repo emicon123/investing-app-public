@@ -1,0 +1,87 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "cashOnHandPln": 2000,
+      "deployableCashPln": 1500,
+      "totalPortfolioValuePln": 740,
+      "pricesRefreshedAt": "<masked>",
+      "buyList": [
+        {
+          "ticker": "B1",
+          "name": "B primary",
+          "exchange": "XTB",
+          "purchaseCurrency": "PLN",
+          "allocatedPln": 696,
+          "allocatedNative": 696,
+          "unitsToBuy": 34.8,
+          "currentPct": 27.027,
+          "targetPct": 40,
+          "deviationPct": -0.3243,
+          "accountAllocations": [
+            {
+              "accountType": "IKE_TATA",
+              "allocPln": 696,
+              "unitsToBuy": 34.8
+            }
+          ],
+          "availableTickers": [
+            "B1"
+          ]
+        },
+        {
+          "ticker": "A1",
+          "name": "A primary",
+          "exchange": "XTB",
+          "purchaseCurrency": "PLN",
+          "allocatedPln": 804,
+          "allocatedNative": 804,
+          "unitsToBuy": 8.04,
+          "currentPct": 72.973,
+          "targetPct": 60,
+          "deviationPct": 0.2162,
+          "accountAllocations": [
+            {
+              "accountType": "IKE_TATA",
+              "allocPln": 304,
+              "unitsToBuy": 3.04
+            },
+            {
+              "accountType": "IKE_MAMA",
+              "allocPln": 500,
+              "unitsToBuy": 5
+            }
+          ],
+          "availableTickers": [
+            "A1",
+            "A2"
+          ]
+        }
+      ],
+      "donutData": [
+        {
+          "ticker": "A1",
+          "name": "A primary",
+          "currentPct": 72.973,
+          "targetPct": 60,
+          "valuePln": 540,
+          "deviationPct": 0.2162,
+          "status": "OVER"
+        },
+        {
+          "ticker": "B1",
+          "name": "B primary",
+          "currentPct": 27.027,
+          "targetPct": 40,
+          "valuePln": 200,
+          "deviationPct": -0.3243,
+          "status": "UNDER"
+        }
+      ]
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

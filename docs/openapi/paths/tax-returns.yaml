@@ -1,0 +1,74 @@
+collection:
+  get:
+    tags: [tax-returns]
+    summary: List annual PIT tax returns
+    operationId: listTaxReturns
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 100
+    responses:
+      "200":
+        description: Paginated tax returns.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/tax-returns.yaml#/TaxReturnsPagedResponse"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+  post:
+    tags: [tax-returns]
+    summary: Record a new annual tax return
+    operationId: createTaxReturn
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/tax-returns.yaml#/CreateTaxReturnRequest"
+          example:
+            year: 2025
+            grossGain: 12000.0
+            taxPaid: 2280.0
+            effectiveRatePct: 19.0
+    responses:
+      "201":
+        description: Tax return recorded.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, meta]
+              properties:
+                data:
+                  $ref: "../components/schemas/tax-returns.yaml#/TaxReturn"
+                meta:
+                  $ref: "../components/schemas/common.yaml#/Meta"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

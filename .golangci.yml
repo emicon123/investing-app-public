@@ -1,0 +1,43 @@
+# golangci-lint v2 config for all four Go modules (task 184 / D174 §8.4).
+#
+# One root config, run once per module from the module directory (see the `lint` job in
+# .github/workflows/go-tests.yml, and locally: `cd <module> && golangci-lint run ./...` -
+# golangci-lint finds this file by walking up from the working directory). The tool version
+# is pinned in the workflow; keep it in step with any local install.
+version: "2"
+
+linters:
+  # standard = errcheck, govet, ineffassign, staticcheck, unused
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint
+    - misspell
+    - nolintlint
+    - gocognit
+  settings:
+    gocognit:
+      # Ratchet (task 187 B4): the highest score left in checked code is 37 (siblingcore
+      # transfer.ExecuteTransfer); main position.Service.Create was split to < 12 in 187 B3 and
+      # the offline tools are excluded by path below. Raise it only with a reason; lower it when
+      # ExecuteTransfer, purchasesession computeBreakdown (34) or rebalancingcalc calculateBuyList
+      # (32) are split.
+      min-complexity: 37
+    misspell:
+      # "Nowe" is the Polish word for "new" (news-notification titles), not a typo.
+      ignore-rules:
+        - nowe
+  exclusions:
+    rules:
+      # The cognitive-complexity ratchet targets production code. Testcontainers / migration
+      # tests are long linear scripts.
+      - path: _test\.go$
+        linters:
+          - gocognit
+    # Matched as regexes against paths relative to this file (run.relative-path-mode: cfg).
+    paths:
+      # Bot (live OKX execution) code is never edited to satisfy a linter.
+      - apps/main/backend-go/internal/bot/
+      # Generated code: sqlc output and the oapi-codegen server interface.
+      - ".*/sqlcgen/"
+      - ".*/openapi/server\\.gen\\.go$"

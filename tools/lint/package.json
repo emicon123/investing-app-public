@@ -1,0 +1,15 @@
+{
+  "name": "@investing-app/lint",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "ESLint toolchain for the frontend workspace. A standalone npm project (NOT a root workspace, own lockfile): typescript-eslint needs the classic TypeScript JS API (typescript < 6.1) while the apps compile with TypeScript 7, which ships none, and workspace hoisting would resolve ts-api-utils against the root TypeScript 7. Install with `npm run lint:install` at the repo root.",
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.13.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0"
+  }
+}

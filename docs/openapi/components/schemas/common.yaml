@@ -1,0 +1,54 @@
+# --- Envelope primitives ---
+Meta:
+  type: object
+  required: [requestId, timestamp]
+  properties:
+    requestId:
+      type: string
+      format: uuid
+      readOnly: true
+    timestamp:
+      type: string
+      format: date-time
+      readOnly: true
+
+PageInfo:
+  type: object
+  required: [number, size, total]
+  properties:
+    number:
+      type: integer
+      minimum: 0
+    size:
+      type: integer
+      minimum: 1
+      maximum: 100
+    total:
+      type: integer
+      minimum: 0
+
+ErrorDetail:
+  type: object
+  required: [code, message]
+  properties:
+    code:
+      type: string
+      example: VALIDATION_ERROR
+    field:
+      type: [string, "null"]
+      example: ticker
+    message:
+      type: string
+      example: must not be blank
+
+ErrorResponse:
+  type: object
+  required: [errors, meta]
+  properties:
+    errors:
+      type: array
+      items:
+        $ref: "#/ErrorDetail"
+    meta:
+      $ref: "#/Meta"
+

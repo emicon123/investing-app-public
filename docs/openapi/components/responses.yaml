@@ -1,0 +1,106 @@
+Unauthorized:
+  description: Missing or invalid Authorization token.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+      example:
+        errors:
+          - code: UNAUTHORIZED
+            message: Bearer token missing or invalid
+        meta:
+          requestId: "00000000-0000-0000-0000-000000000000"
+          timestamp: "2026-06-08T12:00:00Z"
+Forbidden:
+  description: Authenticated but email not in allowlist.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+NotFound:
+  description: Resource not found.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+Conflict:
+  description: Duplicate resource (unique constraint violated).
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+UnprocessableEntity:
+  description: Validation error.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+BadRequest:
+  description: >
+    Invalid request, for example a malformed `Idempotency-Key` header
+    (`VALIDATION_ERROR`, `field: Idempotency-Key`).
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+      example:
+        errors:
+          - code: VALIDATION_ERROR
+            field: Idempotency-Key
+            message: "must be 1-255 printable ASCII characters"
+        meta:
+          requestId: "00000000-0000-0000-0000-000000000000"
+          timestamp: "2026-11-04T12:00:00Z"
+IdempotencyInProgress:
+  description: >
+    A request with the same `Idempotency-Key` is still being processed, or it ended with a
+    5xx and its outcome is unknown (ADR-111). Nothing was written by this request.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+      example:
+        errors:
+          - code: IDEMPOTENCY_IN_PROGRESS
+            message: "A request with this Idempotency-Key is in progress or its outcome is unknown; check the history before retrying"
+        meta:
+          requestId: "00000000-0000-0000-0000-000000000000"
+          timestamp: "2026-11-04T12:00:00Z"
+UnprocessableOrKeyReused:
+  description: >
+    Validation error (`VALIDATION_ERROR`), or the `Idempotency-Key` was already used for a
+    different method, path or body (`IDEMPOTENCY_KEY_REUSED`, ADR-111).
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+      example:
+        errors:
+          - code: IDEMPOTENCY_KEY_REUSED
+            message: "Idempotency-Key was already used for a different request"
+        meta:
+          requestId: "00000000-0000-0000-0000-000000000000"
+          timestamp: "2026-11-04T12:00:00Z"
+InternalServerError:
+  description: Unexpected server error.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+
+PushNotConfigured:
+  description: >
+    Web Push is not configured on this backend (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY /
+    VAPID_SUBJECT not all set — ADR-108 §7). Not retried by clients; the news script logs it
+    and carries on.
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas/common.yaml#/ErrorResponse"
+      example:
+        errors:
+          - code: PUSH_NOT_CONFIGURED
+            message: "Web Push is not configured (VAPID keys missing)"
+        meta:
+          requestId: "00000000-0000-0000-0000-000000000000"
+          timestamp: "2026-10-27T04:21:00Z"

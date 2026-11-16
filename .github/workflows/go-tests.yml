@@ -1,0 +1,255 @@
+name: Go Tests
+
+# CI build+test verification only - no deployment/CD, no secrets. Replaces the retired
+# Maven-only `backend-tests.yml` (Java backends deleted, ADR-098 / phase-9 task step 5).
+#
+# Runs `go test ./...` WITHOUT -short for all four Go modules. The suites use
+# testcontainers-go against a real postgres:17.11-alpine, migrated by the same
+# flyway/flyway:13.10.3 CLI image prod uses (packages/common/go/common-go/testsupport/
+# postgres.go) - "never mock the database". `-short` would silently SKIP every one of
+# those tests, so it must not be used here. GitHub-hosted ubuntu-latest runners ship
+# with Docker, so no `services:` sidecar is needed, and the Flyway migrations are read
+# straight from the repo (db/migration/, apps/*/db/migration/) by the tests themselves.
+#
+# The repo-root go.work (tracked) lists all four modules, so `go test` inside a module
+# dir resolves investing-app/common-go from source, exactly as it does locally.
+#
+# Quality gates (task 184, D174 section 8.4) run beside `test` as independent jobs, each over
+# the same four modules: `race` (the race detector - TSan is unsupported on the Pi, so CI is
+# the only place it runs), `vuln` (govulncheck), `lint` (golangci-lint, root .golangci.yml).
+# Every action and tool is pinned to an exact version; bump deliberately, not via @latest.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/main/backend-go/**'
+      - 'apps/portfolio-b/backend-go/**'
+      - 'apps/portfolio-c/backend-go/**'
+      - 'packages/common/go/common-go/**'
+      - 'apps/main/db/migration/**'
+      - 'apps/portfolio-b/db/migration/**'
+      - 'apps/portfolio-c/db/migration/**'
+      - 'go.work'
+      - 'go.work.sum'
+      - '.golangci.yml'
+      - '.github/workflows/go-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/main/backend-go/**'
+      - 'apps/portfolio-b/backend-go/**'
+      - 'apps/portfolio-c/backend-go/**'
+      - 'packages/common/go/common-go/**'
+      - 'apps/main/db/migration/**'
+      - 'apps/portfolio-b/db/migration/**'
+      - 'apps/portfolio-c/db/migration/**'
+      - 'go.work'
+      - 'go.work.sum'
+      - '.golangci.yml'
+      - '.github/workflows/go-tests.yml'
+
+# A newer push to the same PR supersedes the older run; runs on main always finish.
+concurrency:
+  group: go-tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: go test (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    # Every integration test boots its own Postgres + Flyway container pair; the suites
+    # are not instant. Generous headroom, far below GitHub's 6h hard cap.
+    timeout-minutes: 30
+    strategy:
+      # One module's failure must not hide the others' results.
+      fail-fast: false
+      matrix:
+        module:
+          - apps/main/backend-go
+          - apps/portfolio-b/backend-go
+          - apps/portfolio-c/backend-go
+          - packages/common/go/common-go
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Each go.mod declares `go 1.27` + `toolchain go1.27.4`; setup-go installs the toolchain version.
+      # The module cache + build cache are keyed on the module's own go.sum (setup-go's
+      # default `go.sum` at the repo root does not exist here - the modules are nested).
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      # -count=1: never serve a cached "pass" - a cached result would skip the
+      # containers entirely and prove nothing about the current schema.
+      # -timeout: per-package test-binary cap (Go's default is 10m); container-per-test
+      # packages on a shared runner can be slower than on the Pi/dev box.
+      - name: go test ./... (no -short)
+        run: go test ./... -count=1 -timeout 20m
+
+  # Cheap, container-free guard: the committed sqlc output must match what `sqlc generate`
+  # produces from the current db/migration/ schema + db/queries/. Catches a migration or
+  # query edit whose generated Go code was never regenerated (or was hand-edited).
+  sqlc-drift:
+    name: sqlc generate is up to date
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Pinned to v1.31.1 - the exact version stamped in the header of every committed
+      # db/sqlcgen/*.go file ("// sqlc v1.31.1"). Bump this together with a regenerate.
+      - name: Set up sqlc
+        uses: sqlc-dev/setup-sqlc@v5
+        with:
+          sqlc-version: '1.31.1'
+
+      # + common-go/siblingcore/refdata: the one reference-table query set portfolio-b and portfolio-c share
+      # (task 180 wave 5, ADR-113), generated against portfolio-b's schema.
+      - name: sqlc generate (3 apps + siblingcore/refdata)
+        run: |
+          set -euo pipefail
+          for module in apps/main/backend-go apps/portfolio-b/backend-go apps/portfolio-c/backend-go packages/common/go/common-go/siblingcore/refdata; do
+            echo "::group::sqlc generate ($module)"
+            (cd "$module" && sqlc generate)
+            echo "::endgroup::"
+          done
+
+      # Explicit directories, NOT the glob '**/db/sqlcgen': git pathspecs match a bare
+      # directory-glob against zero tracked files (verified: 0 files vs 46 for the
+      # explicit dirs), which would make `git diff --exit-code` pass vacuously.
+      # `git status --porcelain` (not just `git diff`) so a NEW generated file that was
+      # never committed also fails the check.
+      - name: Fail on drift
+        run: |
+          set -euo pipefail
+          dirs=(
+            apps/main/backend-go/db/sqlcgen
+            apps/portfolio-b/backend-go/db/sqlcgen
+            apps/portfolio-c/backend-go/db/sqlcgen
+            packages/common/go/common-go/siblingcore/refdata/sqlcgen
+          )
+          if [ -n "$(git status --porcelain -- "${dirs[@]}")" ]; then
+            echo "::error::sqlc output differs from the committed db/sqlcgen/ - run 'sqlc generate' (v1.31.1) in each backend-go module and commit the result."
+            git status --short -- "${dirs[@]}"
+            git diff --stat -- "${dirs[@]}"
+            exit 1
+          fi
+
+  # Race detector over the container-free tests. `-short` is right here: it skips every
+  # Testcontainers suite (testsupport.StartPostgres t.Skips in -short mode), which stay in
+  # the `test` job above; running them under -race as well would only double the container
+  # time. ubuntu-latest because go's race detector needs cgo + a supported TSan, neither of
+  # which the Pi provides. -count=1: never serve a cached pass - a race is nondeterministic.
+  race:
+    name: go test -race (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CGO_ENABLED: "1"
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - apps/main/backend-go
+          - apps/portfolio-b/backend-go
+          - apps/portfolio-c/backend-go
+          - packages/common/go/common-go
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      - name: go test -race -short ./...
+        run: go test -race -short ./... -count=1
+
+      # Compile-and-run smoke for the kernel benchmarks (xirr.BenchmarkSolve,
+      # costbasis.BenchmarkPlanTransfer, rebalancecalc.BenchmarkAllocateProportional): one
+      # iteration each, no thresholds. `-run '^$'` runs no tests; a module without
+      # benchmarks is a no-op.
+      - name: Benchmark smoke (1 iteration)
+        run: go test -run '^$' -bench . -benchtime 1x ./...
+
+  # Known-vulnerability scan. govulncheck reports only vulnerabilities whose vulnerable
+  # symbols are actually reachable from the module's code (exit 3 = affected -> job fails),
+  # so a fix or an explicit, dated exclusion is required before this goes green.
+  vuln:
+    name: govulncheck (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - apps/main/backend-go
+          - apps/portfolio-b/backend-go
+          - apps/portfolio-c/backend-go
+          - packages/common/go/common-go
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      # Pinned to govulncheck v1.9.0 (golang.org/x/vuln). `go run pkg@version` builds the tool
+      # outside the module graph, so it never touches the module's go.mod/go.sum.
+      - name: govulncheck ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+
+  # Static analysis with the root .golangci.yml (linter set + exclusions live there; the
+  # config is found by walking up from each module dir). One run per module so each
+  # module's own go.mod / build cache is used.
+  lint:
+    name: golangci-lint (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - apps/main/backend-go
+          - apps/portfolio-b/backend-go
+          - apps/portfolio-c/backend-go
+          - packages/common/go/common-go
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # golangci-lint type-checks the module, so it needs the same Go toolchain as the build.
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      # Action pinned to v9.3.0, golangci-lint to v2.15.0 (the config is `version: "2"`).
+      # `uses` steps ignore defaults.run.working-directory, hence the explicit input.
+      - name: golangci-lint run ./...
+        uses: golangci/golangci-lint-action@v9.3.0
+        with:
+          version: v2.15.0
+          working-directory: ${{ matrix.module }}

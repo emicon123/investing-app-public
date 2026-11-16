@@ -1,0 +1,239 @@
+# --- Asset News (ADR-041) ---
+NewsSentiment:
+  type: string
+  enum: [POSITIVE, NEUTRAL, NEGATIVE]
+
+NewsSource:
+  type: object
+  required: [title, url]
+  properties:
+    title:
+      type: string
+      maxLength: 300
+      example: "Watcher Guru"
+    url:
+      type: string
+      format: uri
+      example: "https://watcher.guru/news/example-article"
+
+NewsItem:
+  type: object
+  required: [ticker, assetName, headline, summary, newsDate]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    ticker:
+      type: string
+      maxLength: 20
+      example: "BTC-USD"
+    assetName:
+      type: string
+      maxLength: 200
+      example: "Bitcoin"
+    headline:
+      type: string
+      maxLength: 300
+      example: "Bitcoin holds above $60k as ETF inflows resume"
+    summary:
+      type: string
+      description: AI-written, roughly 2-3 sentences.
+      example: |
+        Spot Bitcoin ETFs recorded their largest single-day inflow in three
+        weeks, led by renewed institutional demand. Analysts pointed to
+        easing macro uncertainty after the latest US inflation print.
+        On-chain data shows exchange reserves continuing their multi-month decline.
+    sentiment:
+      oneOf:
+        - $ref: "#/NewsSentiment"
+        - type: "null"
+    sources:
+      type: array
+      items:
+        $ref: "#/NewsSource"
+    newsDate:
+      type: string
+      format: date
+      description: Date the research covers (host-script run date, Europe/Warsaw).
+      example: "2026-06-17"
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+    updatedAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+NewsListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/NewsItem"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+NewsDatesListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      description: Distinct news dates, most recent first.
+      items:
+        type: string
+        format: date
+      example: ["2026-06-17", "2026-06-16", "2026-06-15"]
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+NewsHistoryItem:
+  type: object
+  description: >
+    One past day's already-reported headline for this asset, used by the nightly research
+    prompt to avoid re-reporting an ongoing story (ADR-079). Deliberately omits
+    sentiment/sources to keep the /news/assets payload — forwarded verbatim into the
+    claude -p prompt by infra/news/news-research.sh — small.
+  required: [newsDate, headline, summary]
+  properties:
+    newsDate:
+      type: string
+      format: date
+      example: "2026-08-20"
+    headline:
+      type: string
+      maxLength: 300
+      example: "Bitcoin Core devs debate BIP-110 opcode activation timeline"
+    summary:
+      type: string
+      example: |
+        A subset of Bitcoin Core contributors proposed accelerating BIP-110 review after
+        weeks of mailing-list debate. No consensus on activation height yet; discussion
+        continues on the next scheduled dev call.
+
+NewsAsset:
+  type: object
+  required: [ticker, assetName, recentHistory]
+  properties:
+    ticker:
+      type: string
+      maxLength: 20
+      example: "BTC-USD"
+    assetName:
+      type: string
+      maxLength: 200
+      example: "Bitcoin"
+    recentHistory:
+      type: array
+      description: >
+        Up to app.news.history-lookback-days (default 7) days of this asset's own past
+        news, most-recent-first — added ADR-079 so the nightly research prompt can tell
+        "already reported, no update" from "genuinely new development" instead of starting
+        cold every night. Empty array when the asset has no history in the window.
+      items:
+        $ref: "#/NewsHistoryItem"
+
+NewsAssetsListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      description: >
+        MAIN-portfolio, non-companion positions with companyBacked = true (ADR-064,
+        semantics broadened by ADR-079 to "has its own distinguishable,
+        individually-researchable narrative" — includes leaderless protocol-level assets
+        like BTC-USD, excludes only basket/index/commodity ETF vehicles and currency rows).
+      items:
+        $ref: "#/NewsAsset"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+IngestNewsItem:
+  type: object
+  required: [ticker, assetName, headline, summary, newsDate]
+  properties:
+    ticker:
+      type: string
+      maxLength: 20
+      example: "BTC-USD"
+    assetName:
+      type: string
+      maxLength: 200
+      example: "Bitcoin"
+    headline:
+      type: string
+      maxLength: 300
+    summary:
+      type: string
+    sentiment:
+      oneOf:
+        - $ref: "#/NewsSentiment"
+        - type: "null"
+    sources:
+      type: array
+      items:
+        $ref: "#/NewsSource"
+    newsDate:
+      type: string
+      format: date
+
+IngestNewsRequest:
+  type: object
+  required: [items]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/IngestNewsItem"
+
+IngestNewsResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: object
+      required: [upserted]
+      properties:
+        upserted:
+          type: integer
+          description: Number of asset_news rows inserted or updated by this call.
+          example: 12
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+
+# --- Morning report outcome -> Web Push fan-out (ADR-108 §2) ---
+NewsReportOutcome:
+  type: string
+  description: >
+    Outcome of one run of infra/news/news-research.sh. READY = ingest succeeded;
+    NO_NEWS = claude returned 0 items; NO_ASSETS = GET /news/assets returned none;
+    FAILED = any failure, including an unexpected abort caught by the script's EXIT trap.
+  enum: [READY, NO_NEWS, NO_ASSETS, FAILED]
+
+NotifyNewsReportRequest:
+  type: object
+  description: >
+    A structured outcome, never free text: the backend owns the Polish notification copy
+    (ADR-108 §5), so no headline, ticker or failure detail can reach a notification.
+    itemCount is required (>= 1) when outcome is READY and must be omitted otherwise —
+    violations are 422.
+  required: [outcome, newsDate]
+  properties:
+    outcome:
+      $ref: "#/NewsReportOutcome"
+    newsDate:
+      type: string
+      format: date
+      description: Europe/Warsaw run date (the script's news_date).
+      example: "2026-10-27"
+    itemCount:
+      type: integer
+      minimum: 1
+      description: Items Claude returned and the script posted to /news/ingest (READY only).
+      example: 7

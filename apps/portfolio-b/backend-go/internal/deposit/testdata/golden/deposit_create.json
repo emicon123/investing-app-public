@@ -1,0 +1,16 @@
+{
+  "status": 201,
+  "body": {
+    "data": {
+      "id": "<masked>",
+      "depositDate": "2026-01-10",
+      "amount": 150.25,
+      "comment": "styczeń",
+      "createdAt": "<masked>"
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

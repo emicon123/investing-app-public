@@ -1,0 +1,22 @@
+== list-settings 200 application/json
+{"data":[{"key":"ike_annual_limit_pln","updatedAt":"2026-09-28T09:49:52.783035Z","value":"26019"},{"key":"rebalancing.macro_derisk_enabled","updatedAt":"2026-09-28T09:49:52.783035Z","value":"true"},{"key":"retirement.monthly_contribution_pln","updatedAt":"2026-09-28T09:49:52.783035Z","value":"4000"},{"key":"unregistered.key","updatedAt":"2026-09-28T09:49:52.783035Z","value":"x"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-ok 200 application/json
+{"data":{"key":"retirement.monthly_contribution_pln","updatedAt":"2026-09-28T09:50:52.783035Z","value":"5000"},"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-unregistered-key-passes-through 200 application/json
+{"data":{"key":"unregistered.key","updatedAt":"2026-09-28T09:50:52.783035Z","value":"anything"},"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-null-value 200 application/json
+{"data":{"key":"unregistered.key","updatedAt":"2026-09-28T09:50:52.783035Z","value":""},"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-unknown-key 404 application/json
+{"errors":[{"code":"NOT_FOUND","message":"Setting 'no_such_key' not found"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-malformed-body 422 application/json
+{"errors":[{"code":"VALIDATION_ERROR","message":"Invalid request body"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-missing-value 422 application/json
+{"errors":[{"code":"VALIDATION_ERROR","field":"value","message":"must not be null"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-non-string-value 422 application/json
+{"errors":[{"code":"VALIDATION_ERROR","message":"Invalid request body"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-invalid-value 422 application/json
+{"errors":[{"code":"VALIDATION_ERROR","field":"value","message":"retirement.monthly_contribution_pln must be a valid decimal number"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-non-positive-value 422 application/json
+{"errors":[{"code":"VALIDATION_ERROR","field":"value","message":"retirement.monthly_contribution_pln must be greater than 0"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}
+== update-too-long-value 422 application/json
+{"errors":[{"code":"VALIDATION_ERROR","field":"value","message":"size must be between 0 and 1000"}],"meta":{"requestId":"<masked>","timestamp":"<masked>"}}

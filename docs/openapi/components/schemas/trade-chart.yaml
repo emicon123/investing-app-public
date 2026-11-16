@@ -1,0 +1,165 @@
+# --- Trade-History Chart (ADR-057) ---
+
+TradeChartTickerEntry:
+  type: object
+  description: >
+    One entry per ticker eligible for the trade-history chart's ticker picker.
+    Built from DISTINCT asset_purchases.ticker (every ticker ever traded) joined
+    to positions for display metadata.
+  properties:
+    ticker:
+      type: string
+      maxLength: 20
+    name:
+      type: string
+      maxLength: 200
+    yahooTicker:
+      type: string
+    priceCurrency:
+      $ref: "./enums.yaml#/Currency"
+    tradeCount:
+      type: integer
+      format: int64
+      description: >
+        Count of real trades for this ticker (excludes SEED_IMPORT rows — the
+        synthetic 2024-01-01 migration backfill, not a real trade event). A
+        ticker with only SEED_IMPORT rows still appears here with tradeCount 0
+        rather than being omitted.
+    firstTradeAt:
+      type: string
+      format: date-time
+    lastTradeAt:
+      type: string
+      format: date-time
+
+ExcludedTradeChartTicker:
+  type: object
+  description: A ticker with trade history that could not be resolved for charting, and why.
+  required: [ticker, reason]
+  properties:
+    ticker:
+      type: string
+      maxLength: 20
+    reason:
+      type: string
+      enum: [NO_POSITION_MATCH, MISSING_YAHOO_TICKER]
+      description: >
+        NO_POSITION_MATCH = no positions row has this ticker at all (e.g. the
+        position was later renamed/removed). MISSING_YAHOO_TICKER = a matching
+        positions row exists but its yahoo_ticker is NULL, so no price history
+        can be fetched.
+
+TradeChartTickersResponse:
+  type: object
+  required: [data, excluded, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/TradeChartTickerEntry"
+    excluded:
+      type: array
+      items:
+        $ref: "#/ExcludedTradeChartTicker"
+      description: Tickers omitted from data, with a reason — never a silent drop.
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+TradeChartPricePoint:
+  type: object
+  description: >
+    One OHLC point of the raw price series (no regression fit). open/high/low back the
+    frontend's optional candlestick rendering mode (ADR-057 addendum) — a same-day trade can
+    look misaligned against a close-only line when it executed at a different point within that
+    day's actual range; a candle makes the full range visible instead of just the close.
+  properties:
+    date:
+      type: string
+      format: date
+    open:
+      type: number
+      format: double
+    close:
+      type: number
+      format: double
+    high:
+      type: number
+      format: double
+    low:
+      type: number
+      format: double
+    priceSource:
+      $ref: "./enums.yaml#/PriceSource"
+      description: >
+        Absent/omitted is equivalent to YAHOO. Only ever non-YAHOO for the four Virtune
+        ETP tickers Yahoo has no history for (ADR-085) — every other ticker's points are
+        always YAHOO.
+
+TradeChartMarker:
+  type: object
+  description: >
+    One asset_purchases row rendered as a dot on the trade-history chart.
+    unitsDelta's sign is the buy/sell indicator (positive=buy, negative=sell) —
+    same convention as the asset_purchases column it is sourced from. Recommended
+    frontend rendering: dot size scales with abs(totalPln); dot color/shade keys
+    off tradeType (not enforced by this schema — a display concern).
+  properties:
+    id:
+      type: integer
+      format: int64
+    purchasedAt:
+      type: string
+      format: date-time
+    tradeType:
+      $ref: "./enums.yaml#/TradeType"
+    portfolio:
+      $ref: "./enums.yaml#/Portfolio"
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    unitsDelta:
+      type: number
+      format: double
+    pricePln:
+      type: number
+      format: double
+    priceNative:
+      type: number
+      format: double
+      description: >
+        pricePln converted to the position's priceCurrency via a nearest-date
+        historical FX lookup (ADR-057). Equal to pricePln when priceCurrency is
+        PLN. This is the Y-axis value the marker should be plotted at — it
+        matches the units of priceSeries below.
+    totalPln:
+      type: number
+      format: double
+      description: Signed — negative for sells, matching asset_purchases.total_pln.
+    sessionId:
+      type: [integer, "null"]
+      format: int64
+
+TradeChartResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: object
+      properties:
+        ticker:
+          type: string
+        yahooTicker:
+          type: string
+        priceCurrency:
+          $ref: "./enums.yaml#/Currency"
+        interval:
+          type: string
+        priceSeries:
+          type: array
+          items:
+            $ref: "#/TradeChartPricePoint"
+        trades:
+          type: array
+          items:
+            $ref: "#/TradeChartMarker"
+    meta:
+      $ref: "./common.yaml#/Meta"

@@ -1,0 +1,29 @@
+IdempotencyKey:
+  name: Idempotency-Key
+  in: header
+  required: false
+  description: |
+    Client-generated key that makes this money-moving request safe to retry (ADR-111,
+    IETF draft-ietf-httpapi-idempotency-key-header). The web client generates one random
+    UUID per user intent (one dialog submission) and reuses it for every retry of that
+    intent; it rotates the key after a success or when the dialog closes.
+
+    - First request with a key: processed normally. A 2xx response is stored for 24 h.
+    - Same key, same method + path + body, after a 2xx: the stored response is replayed
+      (same status and body) with the response header `Idempotent-Replayed: true`; nothing
+      is written again.
+    - Same key while the first request is still running, or after it failed with a 5xx
+      (outcome unknown): `409 IDEMPOTENCY_IN_PROGRESS`. Check the history before retrying
+      with a new key.
+    - Same key, different method, path or body: `422 IDEMPOTENCY_KEY_REUSED`.
+    - A 4xx response is not stored (nothing was written), so a corrected retry with the
+      same key runs normally.
+    - Malformed key (empty, longer than 255 characters, or not printable ASCII): `400
+      VALIDATION_ERROR` with `field: Idempotency-Key`.
+
+    Omitting the header keeps the pre-ADR-111 behaviour (no deduplication).
+  schema:
+    type: string
+    minLength: 1
+    maxLength: 255
+  example: "6f1c2a8e-3b7d-4c55-9a0e-2f4b1d9c7e10"

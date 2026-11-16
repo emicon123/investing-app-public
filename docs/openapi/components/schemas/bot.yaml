@@ -1,0 +1,756 @@
+# --- Bot: OKX macro-calendar trading tracker (Phase 5, investing-only) ---
+# Mirrors backend/.../dto/bot/*.java 1:1 (field names, nullability, envelopes).
+# Jackson `non_absent` omits nulls — every nullable field below is optional on the wire.
+# Durable audit trail: bot_trade.okx_order_id/okx_algo_id/margin_allocated_pln/
+# sizing_confidence + notes cluster line; one bot_signal per evaluated event;
+# bot_trade_action rows (incl. SYSTEM SCALP_SESSION_*). See ADR-090/ADR-092.
+
+BotCalendarEvent:
+  type: object
+  required: [id, eventTime, currency, eventName, impact, source, externalId, createdAt]
+  properties:
+    id:
+      type: integer
+      format: int64
+    eventTime:
+      type: string
+      format: date-time
+    currency:
+      type: string
+      example: "USD"
+    country:
+      type: [string, "null"]
+    eventName:
+      type: string
+      example: "CPI m/m"
+    impact:
+      type: string
+      enum: [HIGH, MEDIUM, LOW, HOLIDAY]
+    forecast:
+      type: [string, "null"]
+      example: "0.3%"
+    previous:
+      type: [string, "null"]
+    actual:
+      type: [string, "null"]
+    source:
+      type: string
+      example: "FAIRECONOMY"
+    actualSource:
+      type: [string, "null"]
+      description: >
+        Who last supplied `actual` (ADR-093 §8) — independent of `source`.
+        Null means unknown/implicitly FAIRECONOMY (pre-V71 rows).
+    externalId:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+
+BotCalendarEventPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotCalendarEvent"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+BotCalendarSyncResult:
+  type: object
+  required: [upserted]
+  properties:
+    upserted:
+      type: integer
+      description: ForexFactory + TradingEconomics upsert count (BLS baseline writes no calendar rows).
+
+BotCalendarSyncResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotCalendarSyncResult"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BotControl:
+  type: object
+  required: [tradingEnabled, updatedAt]
+  properties:
+    tradingEnabled:
+      type: boolean
+      description: Kill switch — false blocks NEW trade entry, never managing an open one.
+    pausedReason:
+      type: [string, "null"]
+    updatedAt:
+      type: string
+      format: date-time
+
+BotControlResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotControl"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+UpdateBotControlRequest:
+  type: object
+  required: [tradingEnabled]
+  properties:
+    tradingEnabled:
+      type: boolean
+    pausedReason:
+      type: [string, "null"]
+
+BotPlanScenario:
+  type: object
+  required: [id, eventName, eventTime, scenarioLabel, triggerCondition, action, reasoning]
+  properties:
+    id:
+      type: integer
+      format: int64
+    calendarEventId:
+      type: [integer, "null"]
+      format: int64
+    eventName:
+      type: string
+    eventTime:
+      type: string
+      format: date-time
+    scenarioLabel:
+      type: string
+      enum: [EXTREME_MISS, MISS, SLIGHT_MISS, INLINE, SLIGHT_BEAT, BEAT, EXTREME_BEAT]
+    triggerCondition:
+      type: string
+    action:
+      type: string
+      enum: [LONG, SHORT, HOLD]
+    leverage:
+      type: [integer, "null"]
+      minimum: 1
+      maximum: 10
+      description: Null on HOLD legs (V65 1–10 cap on directional legs).
+    surpriseMin:
+      type: [number, "null"]
+      format: double
+    surpriseMax:
+      type: [number, "null"]
+      format: double
+    confidence:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 1
+    reasoning:
+      type: string
+
+BotDailyPlan:
+  type: object
+  required: [id, planDate, status, scenarios]
+  properties:
+    id:
+      type: integer
+      format: int64
+    planDate:
+      type: string
+      format: date
+    status:
+      type: string
+      enum: [PUBLISHED, EMPTY]
+    summary:
+      type: [string, "null"]
+    marketContext:
+      type: [object, "null"]
+      description: Free-form 8-pole context map (kept as JSONB).
+    model:
+      type: [string, "null"]
+    scenarios:
+      type: array
+      items:
+        $ref: "#/BotPlanScenario"
+
+BotDailyPlanSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotDailyPlan"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BotDailyPlanPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotDailyPlan"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+IngestBotPlanScenario:
+  type: object
+  required: [eventName, eventTime, scenarioLabel, triggerCondition, action, reasoning]
+  properties:
+    calendarEventId:
+      type: [integer, "null"]
+      format: int64
+    eventName:
+      type: string
+    eventTime:
+      type: string
+      format: date-time
+    scenarioLabel:
+      type: string
+    triggerCondition:
+      type: string
+    action:
+      type: string
+      enum: [LONG, SHORT, HOLD]
+    leverage:
+      type: [integer, "null"]
+      minimum: 1
+      maximum: 10
+    surpriseMin:
+      type: [number, "null"]
+      format: double
+    surpriseMax:
+      type: [number, "null"]
+      format: double
+    confidence:
+      type: [number, "null"]
+      format: double
+      minimum: 0
+      maximum: 1
+    reasoning:
+      type: string
+
+IngestBotPlanRequest:
+  type: object
+  required: [planDate]
+  properties:
+    planDate:
+      type: string
+      format: date
+    summary:
+      type: [string, "null"]
+    marketContext:
+      type: [object, "null"]
+    model:
+      type: [string, "null"]
+    status:
+      type: [string, "null"]
+      description: Only "EMPTY" is honored literally; anything else becomes PUBLISHED.
+    scenarios:
+      type: array
+      items:
+        $ref: "#/IngestBotPlanScenario"
+
+BotSignal:
+  type: object
+  required: [id, eventName, actual, decision, executed, createdAt]
+  properties:
+    id:
+      type: integer
+      format: int64
+    calendarEventId:
+      type: [integer, "null"]
+      format: int64
+    planScenarioId:
+      type: [integer, "null"]
+      format: int64
+    eventName:
+      type: string
+    actual:
+      type: string
+    forecast:
+      type: [string, "null"]
+    previous:
+      type: [string, "null"]
+    surpriseDesc:
+      type: [string, "null"]
+    decision:
+      type: string
+      enum: [LONG, SHORT, HOLD]
+    executed:
+      type: boolean
+    rawPayload:
+      type: [object, "null"]
+    createdAt:
+      type: string
+      format: date-time
+
+BotSignalSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotSignal"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BotSignalPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotSignal"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+CreateBotSignalRequest:
+  type: object
+  required: [eventName, actual, decision]
+  properties:
+    calendarEventId:
+      type: [integer, "null"]
+      format: int64
+    planScenarioId:
+      type: [integer, "null"]
+      format: int64
+    eventName:
+      type: string
+    actual:
+      type: string
+    forecast:
+      type: [string, "null"]
+    previous:
+      type: [string, "null"]
+    surpriseDesc:
+      type: [string, "null"]
+    decision:
+      type: string
+      enum: [LONG, SHORT, HOLD]
+    rawPayload:
+      type: [object, "null"]
+
+BotTrade:
+  type: object
+  required: [id, side, status, quantity, leverage, entryPrice, openedAt, createdAt]
+  properties:
+    id:
+      type: integer
+      format: int64
+    signalId:
+      type: [integer, "null"]
+      format: int64
+      description: Null on cluster-net trades (belong to no single event/signal, ADR-090 §3).
+    calendarEventId:
+      type: [integer, "null"]
+      format: int64
+    side:
+      type: string
+      enum: [LONG, SHORT]
+    status:
+      type: string
+      enum: [OPEN, CLOSED]
+    quantity:
+      type: number
+      format: double
+      description: BTC quantity (coin-margined sizing, ADR-090 amendment).
+    leverage:
+      type: integer
+      minimum: 1
+      maximum: 10
+    entryPrice:
+      type: number
+      format: double
+    exitPrice:
+      type: [number, "null"]
+      format: double
+    pnlPln:
+      type: [number, "null"]
+      format: double
+    pnlPct:
+      type: [number, "null"]
+      format: double
+    okxOrderId:
+      type: [string, "null"]
+    okxAlgoId:
+      type: [string, "null"]
+    marginAllocatedPln:
+      type: [number, "null"]
+      format: double
+    sizingConfidence:
+      type: [number, "null"]
+      format: double
+    notes:
+      type: [string, "null"]
+      description: Machine-readable cluster audit line on net trades; emergency-close marker on SL-fail path.
+    openedAt:
+      type: string
+      format: date-time
+    closedAt:
+      type: [string, "null"]
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+    currentPrice:
+      type: [number, "null"]
+      format: double
+      description: Computed at read time from price_cache BTC-USD; null when unavailable.
+    unrealizedPnlPln:
+      type: [number, "null"]
+      format: double
+    unrealizedPnlPct:
+      type: [number, "null"]
+      format: double
+    heldSeconds:
+      type: [integer, "null"]
+      format: int64
+    timeToHardCloseSeconds:
+      type: [integer, "null"]
+      format: int64
+      description: max(0, 900 − heldSeconds).
+    scalpSessionStatus:
+      type: string
+      enum: [NONE, PENDING, RUNNING, DONE]
+      description: Post-trade outbox flag (ADR-092) — only PLACED sets PENDING.
+    scalpSessionClaimedAt:
+      type: [string, "null"]
+      format: date-time
+
+BotTradeSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotTrade"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BotTradePagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotTrade"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+BotTradeListResponse:
+  type: object
+  required: [data, meta]
+  description: >
+    Non-paged envelope (no `page`) — used by GET /bot/positions/open and
+    GET /bot/trades/pending-scalp, which accept page/size params but return
+    ListResponse. Byte-for-byte quirk Backend-Go must preserve.
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotTrade"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+CreateBotTradeRequest:
+  type: object
+  required: [side, quantity, entryPrice]
+  properties:
+    signalId:
+      type: [integer, "null"]
+      format: int64
+    calendarEventId:
+      type: [integer, "null"]
+      format: int64
+    side:
+      type: string
+      enum: [LONG, SHORT]
+    quantity:
+      type: number
+      format: double
+    leverage:
+      type: [integer, "null"]
+      minimum: 1
+      maximum: 10
+    entryPrice:
+      type: number
+      format: double
+    okxOrderId:
+      type: [string, "null"]
+    notes:
+      type: [string, "null"]
+
+CloseBotTradeRequest:
+  type: object
+  required: [exitPrice]
+  properties:
+    exitPrice:
+      type: number
+      format: double
+    pnlPln:
+      type: [number, "null"]
+      format: double
+      description: When omitted, computed as ±(exit−entry)×quantity×leverage.
+    pnlPct:
+      type: [number, "null"]
+      format: double
+
+BotTradeAction:
+  type: object
+  required: [id, tradeId, actionType, source, createdAt]
+  properties:
+    id:
+      type: integer
+      format: int64
+    tradeId:
+      type: integer
+      format: int64
+    actionType:
+      type: string
+      enum: [SET_SL, SET_TP, TRAIL_SL, PARTIAL_CLOSE, FULL_CLOSE, SCALP_SESSION_STARTED, SCALP_SESSION_FINISHED]
+    price:
+      type: [number, "null"]
+      format: double
+    quantity:
+      type: [number, "null"]
+      format: double
+    reasoning:
+      type: [string, "null"]
+    source:
+      type: string
+      enum: [BOT, CLAUDE, SYSTEM]
+    createdAt:
+      type: string
+      format: date-time
+
+BotTradeActionListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotTradeAction"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BotTradeActionSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotTradeAction"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+CreateBotTradeActionRequest:
+  type: object
+  required: [actionType]
+  properties:
+    actionType:
+      type: string
+      enum: [SET_SL, SET_TP, TRAIL_SL, PARTIAL_CLOSE, FULL_CLOSE, SCALP_SESSION_STARTED, SCALP_SESSION_FINISHED]
+    price:
+      type: [number, "null"]
+      format: double
+    quantity:
+      type: [number, "null"]
+      format: double
+    reasoning:
+      type: [string, "null"]
+    source:
+      oneOf:
+        - type: string
+          enum: [BOT, CLAUDE, SYSTEM]
+        - type: "null"
+      description: Defaults to BOT when omitted.
+
+BotTradeTick:
+  type: object
+  required: [id, tradeId, price, createdAt]
+  properties:
+    id:
+      type: integer
+      format: int64
+    tradeId:
+      type: integer
+      format: int64
+    price:
+      type: number
+      format: double
+    volume:
+      type: [number, "null"]
+      format: double
+    cvd:
+      type: [number, "null"]
+      format: double
+    atr1m:
+      type: [number, "null"]
+      format: double
+      description: Serialized as `atr1m` (Java record component name), not `atr_1m`.
+    obImbalance:
+      type: [number, "null"]
+      format: double
+    fundingRate:
+      type: [number, "null"]
+      format: double
+    longShortRatio:
+      type: [number, "null"]
+      format: double
+    openInterest:
+      type: [number, "null"]
+      format: double
+    createdAt:
+      type: string
+      format: date-time
+
+BotTradeTickListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotTradeTick"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+CreateBotTradeTicksRequest:
+  type: object
+  required: [ticks]
+  properties:
+    ticks:
+      type: array
+      items:
+        type: object
+        properties:
+          price:
+            type: [number, "null"]
+            format: double
+            description: Falls back to the trade's entryPrice when omitted.
+          volume:
+            type: [number, "null"]
+            format: double
+          cvd:
+            type: [number, "null"]
+            format: double
+          atr1m:
+            type: [number, "null"]
+            format: double
+          obImbalance:
+            type: [number, "null"]
+            format: double
+          fundingRate:
+            type: [number, "null"]
+            format: double
+          longShortRatio:
+            type: [number, "null"]
+            format: double
+          openInterest:
+            type: [number, "null"]
+            format: double
+
+ScalpFinishRequest:
+  type: object
+  properties:
+    exitCode:
+      type: [integer, "null"]
+      description: Launcher session exit code (0 clean, 124 hard-timeout kill); missing records "unknown", transition still happens.
+
+BotManageAck:
+  type: object
+  required: [tradeId, status]
+  properties:
+    tradeId:
+      type: integer
+      format: int64
+    status:
+      type: string
+      example: "accepted"
+
+BotManageAckResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotManageAck"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BotStats:
+  type: object
+  required: [totalTrades, openTrades, closedTrades, totalPnlPln]
+  properties:
+    totalTrades:
+      type: integer
+      format: int64
+    openTrades:
+      type: integer
+      format: int64
+    closedTrades:
+      type: integer
+      format: int64
+    winRate:
+      type: [number, "null"]
+      format: double
+    totalPnlPln:
+      type: number
+      format: double
+    totalPnlPct:
+      type: [number, "null"]
+      format: double
+      description: Always null in the current Java implementation (reserved).
+    avgHoldMinutes:
+      type: [number, "null"]
+      format: double
+    bestTrade:
+      oneOf:
+        - $ref: "#/BotTrade"
+        - type: "null"
+    worstTrade:
+      oneOf:
+        - $ref: "#/BotTrade"
+        - type: "null"
+
+BotStatsResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BotStats"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BotEquityPoint:
+  type: object
+  required: [date, cumulativePnlPln, dailyPnlPln]
+  properties:
+    date:
+      type: string
+      format: date
+    cumulativePnlPln:
+      type: number
+      format: double
+    dailyPnlPln:
+      type: number
+      format: double
+
+BotEquityListResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BotEquityPoint"
+    meta:
+      $ref: "./common.yaml#/Meta"

@@ -1,0 +1,154 @@
+# --- Crypto Trades ---
+CryptoTrade:
+  type: object
+  required: [tradeDate, ticker, exchange, accountType, side, quantity, unitPrice, priceCurrency, totalAmount, amountPln]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    tradeDate:
+      type: string
+      format: date
+    ticker:
+      type: string
+    exchange:
+      $ref: "./enums.yaml#/Exchange"
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    side:
+      $ref: "./enums.yaml#/TradeSide"
+    quantity:
+      type: number
+      format: double
+    unitPrice:
+      type: number
+      format: double
+    priceCurrency:
+      $ref: "./enums.yaml#/Currency"
+    totalAmount:
+      type: number
+      format: double
+    amountPln:
+      type: number
+      format: double
+    notes:
+      type: [string, "null"]
+    source:
+      $ref: "./enums.yaml#/TradeSource"
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+CreateCryptoTradeRequest:
+  type: object
+  required: [tradeDate, ticker, exchange, accountType, side, quantity, unitPrice, priceCurrency, totalAmount, amountPln]
+  properties:
+    tradeDate:
+      type: string
+      format: date
+    ticker:
+      type: string
+    exchange:
+      $ref: "./enums.yaml#/Exchange"
+    accountType:
+      $ref: "./enums.yaml#/AccountType"
+    side:
+      $ref: "./enums.yaml#/TradeSide"
+    quantity:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+    unitPrice:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+    priceCurrency:
+      $ref: "./enums.yaml#/Currency"
+    totalAmount:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+    amountPln:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+    notes:
+      type: [string, "null"]
+
+CryptoTradesPagedResponse:
+  type: object
+  required: [data, meta, page]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/CryptoTrade"
+    meta:
+      $ref: "./common.yaml#/Meta"
+    page:
+      $ref: "./common.yaml#/PageInfo"
+
+CryptoTaxSummaryEntry:
+  type: object
+  description: Per-ticker PIT-38 crypto totals (mirrors Java CryptoTaxTickerSummary).
+  properties:
+    ticker:
+      type: string
+    totalBuysPln:
+      type: number
+      format: double
+    totalSellsPln:
+      type: number
+      format: double
+    netGainPln:
+      type: number
+      format: double
+      description: totalSellsPln - totalBuysPln
+    estimatedBelkaTaxPln:
+      type: number
+      format: double
+      description: max(0, netGainPln * 0.19) at scale 4 HALF_UP — 19% Polish capital gains tax
+
+CryptoTaxSummaryResponse:
+  type: object
+  description: >
+    Standard {data, meta} envelope (Java SingleResponse<CryptoTaxSummaryResult>).
+    Fixed 2026-09-15: data was previously a bare array of per-ticker entries —
+    the implementation returns yearly totals plus a byTicker breakdown.
+  required: [data, meta]
+  properties:
+    data:
+      type: object
+      required: [year, totalBuysPln, totalSellsPln, netGainPln, estimatedBelkaTaxPln, byTicker]
+      properties:
+        year:
+          type: integer
+        totalBuysPln:
+          type: number
+          format: double
+        totalSellsPln:
+          type: number
+          format: double
+        netGainPln:
+          type: number
+          format: double
+        estimatedBelkaTaxPln:
+          type: number
+          format: double
+        byTicker:
+          type: array
+          items:
+            $ref: "#/CryptoTaxSummaryEntry"
+    meta:
+      $ref: "./common.yaml#/Meta"
+

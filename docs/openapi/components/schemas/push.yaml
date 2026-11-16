@@ -1,0 +1,152 @@
+# --- Web Push notifications (ADR-108) ---
+# No DB row shape leaks here: push_subscriptions.p256dh/auth/endpoint are never echoed back.
+
+PushConfig:
+  type: object
+  required: [enabled]
+  properties:
+    enabled:
+      type: boolean
+      description: >
+        True only when VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT are all set on
+        the backend. When false the web UI hides the "Powiadomienia" card.
+      example: true
+    vapidPublicKey:
+      type: string
+      description: >
+        VAPID application server public key (uncompressed P-256 point, base64url, no
+        padding) to pass as applicationServerKey to PushManager.subscribe(). Omitted when
+        enabled is false.
+      example: "BNbxGYNMhEIi9zrneh7mqV4oUanjLUK3m-mYZBc62frMKrEoMk88r3Lk596T0ck9xlT-ZKHIo2Vf9N8u3tlTeLs"
+
+PushConfigResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/PushConfig"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+PushSubscriptionKeys:
+  type: object
+  required: [p256dh, auth]
+  properties:
+    p256dh:
+      type: string
+      minLength: 80
+      maxLength: 128
+      description: Browser's P-256 ECDH public key, base64url (PushSubscription.toJSON().keys.p256dh).
+      example: "BIPUL12DLfytvTajnryr2PRdAgXS3HGKiLqndGcJGabyhHheJYlNGCeXl1dn18gSJ1WAkAPIxr4gK0_dQds4yiI"
+    auth:
+      type: string
+      minLength: 16
+      maxLength: 64
+      description: Browser's 16-byte auth secret, base64url (PushSubscription.toJSON().keys.auth).
+      example: "FPssNDTKnInHVndSTdbKFw"
+
+UpsertPushSubscriptionRequest:
+  type: object
+  description: >
+    The browser's PushSubscription.toJSON(), minus expirationTime (ignored). Upserted on
+    endpoint; the owner is the caller's JWT principal and the device label is derived
+    server-side from User-Agent — neither is accepted from the client.
+  required: [endpoint, keys]
+  properties:
+    endpoint:
+      type: string
+      format: uri
+      maxLength: 2048
+      description: >
+        Push-service URL. Must be https and on the push-service host allowlist
+        (fcm.googleapis.com, push.services.mozilla.com, push.apple.com,
+        notify.windows.com — host equal to or ending in one of them), else 422. It is a
+        capability URL: never logged.
+      example: "https://fcm.googleapis.com/fcm/send/dpH5lCsTSSM:APA91bHqjZxM0VImWWqDRN7U0a3AycjUf4O-byuxb_wJsKRaKvV_iKw56s16ekq6FUqoCF7k2nICUpd8fHPxVTgqLunFeVeB9lLCQZyohyAztTH8ZQL9WCxKpA6dvTG_TUIhQUFq_n"
+    keys:
+      $ref: "#/PushSubscriptionKeys"
+
+DeletePushSubscriptionRequest:
+  type: object
+  required: [endpoint]
+  properties:
+    endpoint:
+      type: string
+      format: uri
+      maxLength: 2048
+      description: Endpoint of the browser subscription to forget. Unknown endpoints are a no-op.
+      example: "https://fcm.googleapis.com/fcm/send/dpH5lCsTSSM:APA91bHqjZxM0VImWWqDRN7U0a3AycjUf4O-byuxb_wJsKRaKvV_iKw56s16ekq6FUqoCF7k2nICUpd8fHPxVTgqLunFeVeB9lLCQZyohyAztTH8ZQL9WCxKpA6dvTG_TUIhQUFq_n"
+
+PushSubscriptionInfo:
+  type: object
+  required: [id, deviceLabel, createdAt, updatedAt]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+      example: 3
+    deviceLabel:
+      type: string
+      maxLength: 100
+      readOnly: true
+      description: Derived from the subscribing request's User-Agent, e.g. "Android · Chrome".
+      example: "Android · Chrome"
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+    updatedAt:
+      type: string
+      format: date-time
+      readOnly: true
+    lastSuccessAt:
+      type: string
+      format: date-time
+      readOnly: true
+      description: Last 2xx from the push service for this subscription; omitted until the first delivery.
+
+PushSubscriptionResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/PushSubscriptionInfo"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+PushDeliveryReport:
+  type: object
+  description: >
+    Fan-out result. A push-service failure is never an HTTP error — it is counted here
+    (ADR-108 §4). attempted = delivered + pruned + failed.
+  required: [attempted, delivered, pruned, failed]
+  properties:
+    attempted:
+      type: integer
+      minimum: 0
+      example: 2
+    delivered:
+      type: integer
+      minimum: 0
+      description: Push service answered 2xx (accepted for delivery — not proof it reached the screen).
+      example: 1
+    pruned:
+      type: integer
+      minimum: 0
+      description: Push service answered 404/410; the subscription row was deleted.
+      example: 1
+    failed:
+      type: integer
+      minimum: 0
+      description: 429, 5xx, 4xx other than 404/410, network error or timeout; the row is kept.
+      example: 0
+
+PushDeliveryReportResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/PushDeliveryReport"
+    meta:
+      $ref: "./common.yaml#/Meta"

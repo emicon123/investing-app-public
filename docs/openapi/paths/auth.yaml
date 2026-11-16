@@ -1,0 +1,56 @@
+token:
+  post:
+    tags: [auth]
+    summary: Exchange a Google ID token for a backend JWT
+    operationId: exchangeToken
+    security: []
+    description: |
+      Public endpoint — no `Authorization` header required.
+
+      Validates the inbound Google ID token (signature via Google JWK URI,
+      `aud` claim against `GOOGLE_CLIENT_ID`, `email` claim against the
+      server-side allowlist) and issues a signed backend JWT valid for 30 days
+      (configurable via `app.security.jwt-expiry-days`).
+
+      The returned token must be stored by the client and sent as
+      `Authorization: Bearer <token>` on every subsequent request.
+      Repeat this call when the backend JWT expires (every 30 days).
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/auth.yaml#/TokenExchangeRequest"
+          example:
+            googleIdToken: "eyJhbGciOiJSUzI1NiIsImtpZCI6Ii4uLiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZW1haWwiOiJ5b3VAZ21haWwuY29tIiwiYXVkIjoiMTIzLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiZXhwIjo5OTk5OTk5OTk5fQ.signature"
+    responses:
+      "200":
+        description: |
+          Google token accepted. Returns a backend JWT valid for 30 days.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/auth.yaml#/TokenExchangeResponse"
+            example:
+              token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ5b3VAZ21haWwuY29tIiwiaXNzIjoiaW52ZXN0aW5nLWFwcCIsImlhdCI6MTc0OTU1MjAwMCwiZXhwIjoxNzUyMTQ0MDAwfQ.hmac_sig"
+              expiresAt: "2026-07-10T12:00:00Z"
+      "401":
+        description: |
+          Google token invalid, expired, wrong `aud` claim, or email not in
+          the server-side allowlist.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/common.yaml#/ErrorResponse"
+            example:
+              errors:
+                - code: UNAUTHORIZED
+                  message: "Google ID token invalid or email not in allowlist"
+              meta:
+                requestId: "00000000-0000-0000-0000-000000000000"
+                timestamp: "2026-06-10T12:00:00Z"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+

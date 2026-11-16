@@ -1,0 +1,115 @@
+# --- Binance Transfers (ADR-035 side ledger) ---
+BinanceTransfer:
+  type: object
+  description: >
+    One row of the Binance transfer side ledger (mirrors the spreadsheet
+    "Wpłaty Binance" table). NOT a capital record — capital lives in deposits.
+    The yearly SUM(amountPln) is the PIT-38 crypto acquisition-cost figure.
+    No portfolio dimension.
+  required: [transferDate, amountPln, source]
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+    transferDate:
+      type: string
+      format: date
+    amountPln:
+      type: number
+      format: double
+      exclusiveMinimum: 0
+      description: PLN value of the transfer (NUMERIC(14,2)). Canonical PIT-38 figure.
+    amountNative:
+      type: [number, "null"]
+      format: double
+      description: >
+        Original transfer amount in nativeCurrency (manual rows only).
+        Present if and only if nativeCurrency is present.
+    nativeCurrency:
+      oneOf:
+        - $ref: "./enums.yaml#/Currency"
+        - type: "null"
+    comment:
+      type: [string, "null"]
+    source:
+      allOf:
+        - $ref: "./enums.yaml#/BinanceTransferSource"
+      readOnly: true
+    sessionId:
+      type: [integer, "null"]
+      format: int64
+      readOnly: true
+      description: Set on SESSION-sourced rows; references the completed purchase session.
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+
+CreateBinanceTransferRequest:
+  type: object
+  required: [transferDate, amountPln]
+  properties:
+    transferDate:
+      type: string
+      format: date
+    amountPln:
+      type: number
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+      exclusiveMinimum: 0
+    amountNative:
+      type: [number, "null"]
+      format: double
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+      description: Optional native amount; requires nativeCurrency when present.
+    nativeCurrency:
+      oneOf:
+        - $ref: "./enums.yaml#/Currency"
+        - type: "null"
+    comment:
+      type: [string, "null"]
+
+BinanceTransferYearlySum:
+  type: object
+  required: [year, totalPln]
+  properties:
+    year:
+      type: integer
+    totalPln:
+      type: number
+      format: double
+      description: SUM(amountPln) for the year — PIT-38 crypto acquisition cost.
+
+BinanceTransfersListResponse:
+  type: object
+  required: [data, yearlySums, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/BinanceTransfer"
+    yearlySums:
+      type: array
+      description: >
+        Per-year PLN sums over the WHOLE table (independent of the ?year filter),
+        ordered by year descending — lets the UI render the year selector and the
+        PIT-38 total from a single call.
+      items:
+        $ref: "#/BinanceTransferYearlySum"
+    meta:
+      $ref: "./common.yaml#/Meta"
+
+BinanceTransferSingleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: "#/BinanceTransfer"
+    meta:
+      $ref: "./common.yaml#/Meta"
+

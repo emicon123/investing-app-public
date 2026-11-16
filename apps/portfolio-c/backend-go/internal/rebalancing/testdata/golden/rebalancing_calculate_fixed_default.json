@@ -1,0 +1,43 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "portfolio": "FIXED",
+      "deployableCashPln": 350,
+      "totalPortfolioValuePln": 200,
+      "pricesRefreshedAt": "<masked>",
+      "buyList": [
+        {
+          "ticker": "A1",
+          "name": "A primary fixed",
+          "exchange": "XTB",
+          "purchaseCurrency": "PLN",
+          "allocatedPln": 350,
+          "allocatedNative": 350,
+          "unitsToBuy": 3.5,
+          "currentPct": 100,
+          "targetPct": 100,
+          "deviationPct": 0,
+          "availableTickers": [
+            "A1"
+          ]
+        }
+      ],
+      "donutData": [
+        {
+          "ticker": "A1",
+          "name": "A primary fixed",
+          "currentPct": 100,
+          "targetPct": 100,
+          "valuePln": 200,
+          "deviationPct": 0,
+          "status": "ON_TARGET"
+        }
+      ]
+    },
+    "meta": {
+      "requestId": "<masked>",
+      "timestamp": "<masked>"
+    }
+  }
+}

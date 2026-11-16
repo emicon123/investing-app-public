@@ -1,0 +1,16 @@
+.git
+.gitignore
+target
+node_modules
+apps/*/frontend-web/node_modules
+packages/common/*/node_modules
+.claude
+graphify-out
+backtest/__pycache__
+
+# Go (backend-go, apps/*/backend-go, packages/common/go/common-go) — local build/test
+# artifacts only; each backend-go Dockerfile COPYs go.mod/go.sum + source explicitly, so none of
+# this ever needs to reach a build context.
+bin/
+**/*.test
+**/backend-go/backend-go
