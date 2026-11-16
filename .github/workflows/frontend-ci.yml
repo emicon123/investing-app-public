@@ -39,6 +39,7 @@ on:
       - 'vitest.config.mts'
       - 'vitest.setup.ts'
       - '.github/workflows/frontend-ci.yml'
+  workflow_dispatch:
 
 # A newer push to the same PR supersedes the older run; runs on main always finish.
 concurrency:

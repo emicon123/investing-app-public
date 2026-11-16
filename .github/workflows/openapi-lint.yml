@@ -27,6 +27,7 @@ on:
       - 'apps/*/docs/openapi*'
       - 'redocly.yaml'
       - '.github/workflows/openapi-lint.yml'
+  workflow_dispatch:
 
 # A newer push to the same PR supersedes the older run; runs on main always finish.
 concurrency:

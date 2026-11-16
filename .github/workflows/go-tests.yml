@@ -47,6 +47,7 @@ on:
       - 'go.work.sum'
       - '.golangci.yml'
       - '.github/workflows/go-tests.yml'
+  workflow_dispatch:
 
 # A newer push to the same PR supersedes the older run; runs on main always finish.
 concurrency:
